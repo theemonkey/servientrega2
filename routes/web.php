@@ -14,3 +14,14 @@ Route::post('/consultar', [TrackingServientregaController::class, 'consultarGuia
 Route::get('/', function(){ return redirect('/consultar');});
 
 
+/*use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/check-db', function () {
+    try {
+        $databaseName = DB::connection()->getDatabaseName();
+        return "Connected to database: " . $databaseName;
+    } catch (\Exception $e) {
+        return "Error connecting to database: " . $e->getMessage();
+    }
+});*/
