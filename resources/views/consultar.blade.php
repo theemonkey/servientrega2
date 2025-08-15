@@ -7,7 +7,7 @@
         <div class="card shadow-sm p-4" style="width: 100%; max-width: 500px;">
             <div class="card-body">
                 <h5 class="card-title text-center mb-4">Consultar Guía</h5>
-                <form action="{{ url('/consultar') }}" method="POST">
+                <form action="/consultar" method="POST">
                     @csrf
                     <div class="mb-3">
                         <label for="numero_guia" class="form-label">Número de Guía</label>
