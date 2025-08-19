@@ -28,14 +28,3 @@ Route::get('/cotizar', function(){
 
 Route::get('/rastreo', [TrackingController::class, 'rastrearGuia'])->name('rastreo');
 
-/*use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-
-Route::get('/check-db', function () {
-    try {
-        $databaseName = DB::connection()->getDatabaseName();
-        return "Connected to database: " . $databaseName;
-    } catch (\Exception $e) {
-        return "Error connecting to database: " . $e->getMessage();
-    }
-});*/

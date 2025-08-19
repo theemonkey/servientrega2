@@ -16,6 +16,9 @@ class TrackingServientregaController extends Controller
         $response = Http::get("https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx/ConsultarGuia", [
             'NumeroGuia' => $numeroGuia
         ]);
+        // Imagen convertida a base64
+        $xmlResponse = simplexml_load_string($response->body());
+        $imagenBase64 = (string)$xmlResponse->xpath('//Imagen')[0];
 
         if ($response->successful()) {
             // Parsear XML a array
@@ -44,6 +47,7 @@ class TrackingServientregaController extends Controller
                 'ciudad' => $ciudad,
                 'fecha' => $fecha,
                 'respuesta' => $array, // Se guarda como JSON gracias al casts
+                //pendiente agregar mas
             ]);
 
             return view('resultados', ['respuesta' => $array]);
