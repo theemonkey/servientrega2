@@ -9,18 +9,38 @@ use Illuminate\Database\Eloquent\Model;
 class TrackingServientrega extends Model
 {
     use HasFactory;
+
     protected $table = 'tracking_servientrega';
 
     protected $fillable = [
         'numero_guia',
-        'estado',
-        'ciudad',
-        'fecha',
-        'respuesta',
+        'fec_env',
+        'num_pie',
+        'ciu_remitente',
+        'nom_remitente',
+        'dir_remitente',
+        'ciu_destinatario',
+        'nom_destinatario',
+        'dir_destinatario',
+        'id_estado_actual',
+        'estado_actual',
+        'fecha_estado',
+        'nom_receptor',
+        'num_cun',
+        'regimen',
+        'placa',
+        'id_gps',
+        'forma_pago',
+        'nomb_producto',
+        'fecha_probable',
+        'firma_path', // Añadida la columna 'firma_path'
+        'movimientos',  
     ];
 
     protected $casts = [
-        'respuesta' => 'array',
-        'fecha' => 'date',
+        'movimientos' => 'array',
+        'fec_env' => 'datetime',
+        'fecha_estado' => 'datetime',
+        'fecha_probable' => 'datetime',
     ];
 }

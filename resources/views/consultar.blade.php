@@ -10,7 +10,7 @@
                 <form action="/consultar" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label for="numero_guia" class="form-label">Número de Guía</label>
+                        <label for="numero_guia" class="form-label">Número de guía</label>
                         <input type="text" class="form-control" id="numero_guia" name="numero_guia" required>
                     </div>
                     <div class="d-grid">

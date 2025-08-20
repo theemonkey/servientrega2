@@ -13,14 +13,29 @@ return new class extends Migration
     {
         Schema::create('tracking_servientrega', function (Blueprint $table) {
             $table->id();
-            $table->string('numero_guia');
-            $table->string('estado')->nullable();
-            $table->string('ciudad')->nullable();
-            $table->date('fecha')->nullable();
-            $table->json('respuesta')->nullable();
+            $table->string('numero_guia')->nullable();
+            $table->timestamp('fec_env')->nullable();
+            $table->integer('num_pie')->nullable();
+            $table->string('ciu_remitente')->nullable();
+            $table->string('nom_remitente')->nullable();
+            $table->string('dir_remitente')->nullable();
+            $table->string('ciu_destinatario')->nullable();
+            $table->string('nom_destinatario')->nullable();
+            $table->string('dir_destinatario')->nullable();
+            $table->integer('id_estado_actual')->nullable();
+            $table->string('estado_actual')->nullable();
+            $table->timestamp('fecha_estado')->nullable();
+            $table->string('nom_receptor')->nullable();
+            $table->integer('num_cun')->nullable();
+            $table->string('regimen')->nullable();
+            $table->string('placa')->nullable();
+            $table->integer('id_gps')->nullable();
+            $table->string('forma_pago')->nullable();
+            $table->string('nomb_producto')->nullable();
+            $table->timestamp('fecha_probable')->nullable();
+            //$table->string('firma_path')->nullable(); // Descomentada y lista para su uso
+            $table->json('movimientos')->nullable(); // Nombrada 'movimientos' para contener el JSON completo
             $table->timestamps();
-
-            $table->index('numero_guia'); // Index para mejorar la búsqueda por número de guía
         });
     }
 
