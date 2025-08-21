@@ -1,0 +1,51 @@
+/* Centrar el card y darle un estilo limpio */
+.card {
+    border-radius: 15px;
+}
+
+/*Color boton consultar*/
+.btn-consultar {
+    background-color: #33549b;
+    color: #ffffff;
+    padding: 8px 15px;
+    font-size: 20px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    margin-top: 45px;
+    border: none;
+}
+
+.btn-consultar:hover {
+    background-color: #2a4580;  /*tono más oscuro para el hover */
+    color: #ffffff;
+}
+
+/* Ícono */
+.icono-consulta {
+    color: #33549b !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icono-consulta i {
+    color: inherit !important;
+}
+
+/* Texto Numero de guia*/
+.form-label-guia {
+    font-weight: 500;
+    font-size: 18px;
+    color: #595959
+}
+
+/* Botón más pequeño y con bordes redondeados */
+.btn-consultar {
+    padding: 8px 15px;         /* Más compacto */
+    font-size: 20px;           /* Texto tamaño */
+    border-radius: 20px;       /* Bordes redondeados */
+    transition: all 0.3s ease;
+    margin-top: 45px;
+}
+
+

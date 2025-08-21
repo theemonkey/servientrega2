@@ -19,6 +19,10 @@ class TrackingServientregaController extends Controller
 
     public function consultarGuia(Request $request)
     {
+        $request->validate([
+            'numero_guia' => 'required|numeric', //Solo acepta números en guia
+        ]);
+
         $numeroGuia = $request->input('numero_guia');
 
         // Llamada GET al endpoint de Servientrega
@@ -51,7 +55,7 @@ class TrackingServientregaController extends Controller
                 'numero_guia' => $numeroGuia,
             ];
 
-            // Normalizar y preparar datos
+            // Campos que se crearan o actualizaran
             $datos = [
                 'fec_env' => $this->limpiarValor($array['FecEnv'] ?? null),
                 'num_pie' => $this->limpiarValor($array['NumPie'] ?? null),
@@ -72,7 +76,7 @@ class TrackingServientregaController extends Controller
                 'forma_pago' => $this->limpiarValor($array['FormPago'] ?? null),
                 'nomb_producto' => $this->limpiarValor($array['NomProducto'] ?? null),
                 'fecha_probable' => $this->limpiarValor($array['FechaProbable'] ?? null),
-                'movimientos' => $movimientos, // Guardamos siempre en JSON
+                'movimientos' => $movimientos, 
             ];
 
             // Guardar o actualizar

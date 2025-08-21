@@ -1,0 +1,226 @@
+/* ==== Estilos generales de resultados ==== */
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Header de la card */
+.card-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+}
+
+/* Secciones */
+.card-body h5 {
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #efe9ec;
+    padding-bottom: 5px;
+}
+
+/* === BADGES PERSONALIZADOS === */
+/* Letras personalizados */
+.badge {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* Estados exitosos - Verde corporativo */
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+/* Estados en proceso - Azul corporativo */
+.badge.bg-primary {
+    background-color: #007bff !important;
+    color: #ffffff !important;
+}
+
+/* Estados informativos - Cyan/Turquesa */
+.badge.bg-info {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Estados de advertencia - Naranja */
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+/* Estados secundarios - Gris */
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+/* === BADGES CON COLORES HEXADECIMALES PERSONALIZADOS === */
+/* Color específico para ENTREGA VERIFICADA */
+.badge-entrega-verificada {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para ENTREGADO */
+.badge-entregado {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para fechas - Turquesa claro */
+.badge-fecha {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para números/IDs - Azul claro */
+.badge-numero {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para transporte */
+.badge-transporte {
+    background-color: #33549b !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para devolución */
+.badge-devolucion {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para procesamiento */
+.badge-procesamiento {
+    background-color: #fd7e14 !important;
+    color: #ffffff !important;
+}
+
+/* Color específico para sin novedad */
+.badge-sin-novedad {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+/* === COLORES ADICIONALES HEXADECIMALES === */
+/* Puedes agregar más colores aquí usando códigos hex */
+.badge-custom-545 {
+    background-color: #545454 !important;
+    color: #ffffff !important;
+}
+
+.badge-custom-blue {
+    background-color: #4285f4 !important;
+    color: #ffffff !important;
+}
+
+.badge-custom-green {
+    background-color: #34a853 !important;
+    color: #ffffff !important;
+}
+
+.badge-custom-orange {
+    background-color: #fbbc05 !important;
+    color: #212529 !important;
+}
+
+.badge-custom-red {
+    background-color: #ea4335 !important;
+    color: #ffffff !important;
+}
+
+/* Color Historial de movimientos */
+.list-group-item {
+    border: none;
+    border-left: 4px solid #33549b;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+}
+
+.list-group-item strong {
+    font-size: 1rem;
+    color: #343a40;
+}
+
+.list-group-item small {
+    display: block;
+    margin-top: 3px;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* Hover sobre movimientos */
+.list-group-item:hover {
+    background-color: #e9f2ff;
+    transition: 0.3s;
+}
+
+/*Color de division entre secciones*/
+.text-secondary.mb-3 {
+    color: #797979 !important;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+/*Estilos para la tabla de detalles/Historial*/
+/* Ajuste de tabs */
+.nav-tabs .nav-link {
+    color: #555;
+    font-weight: 500;
+}
+.nav-tabs .nav-link.active {
+    color: #000;
+    font-weight: bold;
+    border-bottom: 2px solid #797979;
+}
+
+/* Historial */
+.list-group-item i {
+    margin-right: 5px;
+}
+
+/* === ESTILOS ESPECÍFICOS PARA TIPOS DE MOVIMIENTO === 
+.tipo-devolucion {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.tipo-procesamiento {
+    background-color: #fd7e14 !important;
+    color: #ffffff !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.tipo-sin-novedad {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}*/
+
+.tipo-default {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
