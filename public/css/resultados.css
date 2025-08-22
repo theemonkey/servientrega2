@@ -17,129 +17,39 @@
 .card-body h5 {
     font-weight: 600;
     margin-bottom: 15px;
-    border-bottom: 2px solid #efe9ec;
+    border-bottom: 2px solid #e7dae0;
     padding-bottom: 5px;
 }
 
-/* === BADGES PERSONALIZADOS === */
-/* Letras personalizados */
-.badge {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 500;
+/* ===Badges para los diferentes estados=== */
+.badge-recibido {
+    background-color: #33549b;
+    color: white;
 }
 
-/* Estados exitosos - Verde corporativo */
-.badge.bg-success {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
-}
-
-/* Estados en proceso - Azul corporativo */
-.badge.bg-primary {
-    background-color: #007bff !important;
-    color: #ffffff !important;
-}
-
-/* Estados informativos - Cyan/Turquesa */
-.badge.bg-info {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Estados de advertencia - Naranja */
-.badge.bg-warning {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-}
-
-/* Estados secundarios - Gris */
-.badge.bg-secondary {
-    background-color: #6c757d !important;
-    color: #ffffff !important;
-}
-
-/* === BADGES CON COLORES HEXADECIMALES PERSONALIZADOS === */
-/* Color específico para ENTREGA VERIFICADA */
-.badge-entrega-verificada {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para ENTREGADO */
-.badge-entregado {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para fechas - Turquesa claro */
-.badge-fecha {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para números/IDs - Azul claro */
-.badge-numero {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para transporte */
-.badge-transporte {
-    background-color: #33549b !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para devolución */
-.badge-devolucion {
-    background-color: #dc3545 !important;
-    color: #ffffff !important;
-}
-
-/* Color específico para procesamiento */
 .badge-procesamiento {
-    background-color: #fd7e14 !important;
-    color: #ffffff !important;
+    background-color: #ffc107;
+    color: #212529;
 }
 
-/* Color específico para sin novedad */
-.badge-sin-novedad {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
+.badge-entregado {
+    background-color: #198754;
+    color: white;
 }
 
-/* === COLORES ADICIONALES HEXADECIMALES === */
-/* Puedes agregar más colores aquí usando códigos hex */
-.badge-custom-545 {
-    background-color: #545454 !important;
-    color: #ffffff !important;
+.badge-devolucion {
+    background-color: #fd7e14;
+    color: white;
 }
 
-.badge-custom-blue {
-    background-color: #4285f4 !important;
-    color: #ffffff !important;
+.badge-siniestrado {
+    background-color: #dc3545;
+    color: white;
 }
-
-.badge-custom-green {
-    background-color: #34a853 !important;
-    color: #ffffff !important;
-}
-
-.badge-custom-orange {
-    background-color: #fbbc05 !important;
-    color: #212529 !important;
-}
-
-.badge-custom-red {
-    background-color: #ea4335 !important;
-    color: #ffffff !important;
-}
-
 /* Color Historial de movimientos */
 .list-group-item {
     border: none;
-    border-left: 4px solid #33549b;
+    border-left: 4px solid #33549b !important;
     margin-bottom: 10px;
     border-radius: 8px;
     padding: 12px 15px;
@@ -149,6 +59,16 @@
 .list-group-item strong {
     font-size: 1rem;
     color: #343a40;
+}
+
+/* Estilo para el badge de Cliente */
+.badge.bg-info {
+    background-color: #33549b !important;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    font-size: 0.85em;
+    border-radius: 4px;
 }
 
 .list-group-item small {
@@ -167,54 +87,35 @@
 /*Color de division entre secciones*/
 .text-secondary.mb-3 {
     color: #797979 !important;
-    padding: 10px;
+    padding: 12px 15px;
     background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.05); /* Borde transparente muy sutil */
+    margin-bottom: 1.5rem !important;
+    transition: all 0.2s ease; /* Transición suave */
+}
+
+.text-secondary.mb-3:hover {
+    background-color: #f5f5f5;   /* hover sutil */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /*Estilos para la tabla de detalles/Historial*/
 /* Ajuste de tabs */
 .nav-tabs .nav-link {
-    color: #555;
-    font-weight: 500;
+    color: #33549b;
+    font-weight: bold;
+    border-bottom: 2px solid #33549b;
 }
 .nav-tabs .nav-link.active {
-    color: #000;
-    font-weight: bold;
-    border-bottom: 2px solid #797979;
+    color: #33549b;
+    /*border-bottom: 2px solid #797979;*/
 }
 
 /* Historial */
 .list-group-item i {
     margin-right: 5px;
 }
-
-/* === ESTILOS ESPECÍFICOS PARA TIPOS DE MOVIMIENTO === 
-.tipo-devolucion {
-    background-color: #dc3545 !important;
-    color: #ffffff !important;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
-}
-
-.tipo-procesamiento {
-    background-color: #fd7e14 !important;
-    color: #ffffff !important;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
-}
-
-.tipo-sin-novedad {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
-}*/
 
 .tipo-default {
     background-color: #6c757d !important;
@@ -223,4 +124,149 @@
     border-radius: 6px;
     font-weight: 500;
     font-size: 0.85rem;
+}
+
+/* === TRANSICIONES SUAVES ENTRE PESTAÑAS === */
+.tab-content {
+    position: relative;
+}
+
+.tab-pane {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.tab-pane.show.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Transición suave para los botones de pestañas */
+.nav-tabs .nav-link {
+    transition: all 0.3s ease-in-out;
+}
+
+.nav-tabs .nav-link:hover {
+    transform: translateY(-1px);
+}
+
+.nav-tabs .nav-link.active {
+    transform: translateY(0);
+}
+
+/* Transición para elementos de la lista en historial */
+.list-group-item {
+    transition: all 0.3s ease-in-out;
+}
+
+.list-group-item:hover {
+    transform: translateX(3px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* == Eliminar línea debajo del título ==*/
+.card-title {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+/* Estilos para los botones personalizados */
+.btn-custom {
+    background-color: #33549b;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-custom:hover {
+    background-color: #2a4580;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(51, 84, 155, 0.3);
+    text-decoration: none;
+}
+
+.btn-custom:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(51, 84, 155, 0.3);
+}
+
+.btn-custom:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(51, 84, 155, 0.3);
+}
+
+/* Contenedor de botones */
+.buttons-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+/* Nuevo estilo para items con iconos mejorados */
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding: 8px 0;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    color: #6c757d;
+}
+
+.info-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .buttons-container {
+        flex-direction: column;
+    }
+    
+    .btn-custom {
+        width: 100%;
+        text-align: center;
+    }
+
+    .info-icon {
+        font-size: 1.25rem;
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0.75rem;
+    }
 }

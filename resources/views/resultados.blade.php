@@ -21,109 +21,265 @@
         <div class="card-body tab-content" id="myTabContent">
             <!-- TAB DETALLE -->
             <div class="tab-pane fade show active" id="detalle" role="tabpanel" aria-labelledby="detalle-tab">
-                <h5 class="card-title mb-0 me-2">Detalles de la Guía: 
-                    {{ is_array($respuesta['NumGui'] ?? null) ? implode(', ', $respuesta['NumGui']) : ($respuesta['NumGui'] ?? 'No disponible') }}
-                </h5>
-
                 @if(isset($respuesta['Mov']))
                     @php
                         $movimientos = is_array($respuesta['Mov']['InformacionMov']) ? $respuesta['Mov']['InformacionMov'] : [$respuesta['Mov']['InformacionMov']];
                         $ultimoMovimiento = end($movimientos);
-                        $estadoActual = is_array($ultimoMovimiento['NomMov'] ?? null) ? implode(', ', $ultimoMovimiento['NomMov']) : ($ultimoMovimiento['NomMov'] ?? 'No disponible');
-                        $estadoActualLimpio = strtolower(trim($estadoActual));
-                        $estadosExito = ['entregado', 'entregado en oficina', 'entrega verificada'];
-                        $badgeColor = in_array($estadoActualLimpio, $estadosExito) ? 'badge-entrega-verificada' : 'badge-procesamiento';
+                        
+                        // Mapeo de estados según la tabla proporcionada
+                        $estadosMap = [
+                            '1' => 'RECIBIDO DEL CLIENTE',
+                            '2' => 'EN PROCESAMIENTO', 
+                            '3' => 'ENTREGADO',
+                            '4' => 'ENTREGADO A REMITENTE',
+                            '5' => 'SINIESTRADO'
+                        ];
+                        
+                        // Obtener ID del estado actual (mantener lógica pero no mostrar)
+                        $idEstadoActual = is_array($respuesta['IdEstAct'] ?? null) ? implode(', ', $respuesta['IdEstAct']) : ($respuesta['IdEstAct'] ?? null);
+                        
+                        // Obtener descripción del estado basado en el ID
+                        $estadoActualTexto = $estadosMap[$idEstadoActual] ?? ($respuesta['EstAct'] ?? 'No disponible');
+                        
+                        // Determinar color del badge según el estado
+                        $badgeColorMap = [
+                            '1' => 'badge-recibido',      // Azul
+                            '2' => 'badge-procesamiento', // Amarillo
+                            '3' => 'badge-entregado',     // Verde
+                            '4' => 'badge-devolucion',    // Naranja
+                            '5' => 'badge-siniestrado'    // Rojo
+                        ];
+                        
+                        $badgeColor = $badgeColorMap[$idEstadoActual] ?? 'badge-procesamiento';
+                        
+                        // Validar NumCun para mostrar "Sin observaciones"
+                        $numCun = $respuesta['NumCun'] ?? null;
+                        $pqrTexto = 'Sin observaciones';
+                        
+                        if (!empty($numCun)) {
+                            if (is_array($numCun)) {
+                                $numCunValue = implode(', ', $numCun);
+                                if ($numCunValue && $numCunValue !== '0' && trim($numCunValue) !== '') {
+                                    $pqrTexto = $numCunValue;
+                                }
+                            } else {
+                                if ($numCun && $numCun !== '0' && $numCun !== 0 && trim($numCun) !== '') {
+                                    $pqrTexto = $numCun;
+                                }
+                            }
+                        }
                     @endphp
 
-                    <div class="row mt-4">
-                        <div class="col-md-6 mb-3">
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-info-circle me-2"></i>Último estado:</h6>
-                                <span class="badge {{ $badgeColor }}">{{ $estadoActual }}</span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-clipboard-check me-2"></i>Estado Actual:</h6>
-                                <span class="badge badge-entregado">
-                                    {{ is_array($respuesta['EstAct'] ?? null) ? implode(', ', $respuesta['EstAct']) : ($respuesta['EstAct'] ?? 'No disponible') }}
-                                </span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-calendar-alt me-2"></i>Fecha de Estado:</h6>
-                                <span class="badge badge-fecha">
-                                    {{ is_array($respuesta['FecEst'] ?? null) ? implode(', ', $respuesta['FecEst']) : ($respuesta['FecEst'] ?? 'No disponible') }}
-                                </span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-calendar-alt me-2"></i>Fecha de último movimiento:</h6>
-                                <span class="badge badge-fecha">
-                                    {{ is_array($respuesta['FechaProbable'] ?? null) ? implode(', ', $respuesta['FechaProbable']) : ($respuesta['FechaProbable'] ?? 'No disponible') }}
-                                </span>
-                            </div>
+                    {{-- HEADER CON TÍTULO Y ESTADO HORIZONTAL --}}
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 class="card-title mb-0">Número de guía: 
+                                {{ is_array($respuesta['NumGui'] ?? null) ? implode(', ', $respuesta['NumGui']) : ($respuesta['NumGui'] ?? 'No disponible') }}
+                            </h5>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-cubes me-2"></i>Número de Piezas:</h6>
-                                <span class="badge badge-numero">
-                                    {{ is_array($respuesta['NumPie'] ?? null) ? implode(', ', $respuesta['NumPie']) : ($respuesta['NumPie'] ?? 'No disponible') }}
-                                </span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-hashtag me-2"></i>ID Estado Actual:</h6>
-                                <span class="badge badge-numero">
-                                    {{ is_array($respuesta['IdEstAct'] ?? null) ? implode(', ', $respuesta['IdEstAct']) : ($respuesta['IdEstAct'] ?? 'No disponible') }}
-                                </span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-comments me-2"></i>PQR:</h6>
-                                <span class="badge badge-numero">
-                                    {{ is_array($respuesta['NumCun'] ?? null) ? implode(', ', $respuesta['NumCun']) : ($respuesta['NumCun'] ?? 'No disponible') }}
-                                </span>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="text-secondary"><i class="fas fa-clipboard-list me-2"></i>Tipo de Régimen:</h6>
-                                <span class="badge badge-transporte">
-                                    {{ is_array($respuesta['Regime'] ?? null) ? implode(', ', $respuesta['Regime']) : ($respuesta['Regime'] ?? 'No disponible') }}
-                                </span>
-                            </div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-secondary me-2"><strong><i class="fas fa-clipboard-check me-2"></i>Estado actual:</strong></span>
+                            <span class="badge {{ $badgeColor }}">{{ $estadoActualTexto }}</span>
                         </div>
                     </div>
 
-                    <hr>
                     <div class="row">
                         <div class="col-md-6">
                             <h5 class="text-secondary mb-3">Información de Origen (Remitente)</h5>
-                            <p><strong><i class="fas fa-user me-2"></i>Nombre:</strong> {{ is_array($respuesta['NomRem'] ?? null) ? implode(', ', $respuesta['NomRem']) : ($respuesta['NomRem'] ?? 'No disponible') }}</p>
-                            <p><strong><i class="fas fa-map-marker-alt me-2"></i>Ciudad:</strong> {{ is_array($respuesta['CiuRem'] ?? null) ? implode(', ', $respuesta['CiuRem']) : ($respuesta['CiuRem'] ?? 'No disponible') }}</p>
-                            <p><strong><i class="fas fa-home me-2"></i>Dirección:</strong> {{ is_array($respuesta['DirRem'] ?? null) ? implode(', ', $respuesta['DirRem']) : ($respuesta['DirRem'] ?? 'No disponible') }}</p>
-                            <p><strong><i class="fas fa-calendar-alt me-2"></i>Fecha de Envío:</strong> {{ is_array($respuesta['FecEnv'] ?? null) ? implode(', ', $respuesta['FecEnv']) : ($respuesta['FecEnv'] ?? 'No disponible') }}</p>
+                            
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Nombre</div>
+                                    <div class="info-value">{{ is_array($respuesta['NomRem'] ?? null) ? implode(', ', $respuesta['NomRem']) : ($respuesta['NomRem'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Ciudad de recogida</div>
+                                    <div class="info-value">{{ is_array($respuesta['CiuRem'] ?? null) ? implode(', ', $respuesta['CiuRem']) : ($respuesta['CiuRem'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Dirección</div>
+                                    <div class="info-value">{{ is_array($respuesta['DirRem'] ?? null) ? implode(', ', $respuesta['DirRem']) : ($respuesta['DirRem'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Fecha de Envío</div>
+                                    <div class="info-value">{{ is_array($respuesta['FecEnv'] ?? null) ? implode(', ', $respuesta['FecEnv']) : ($respuesta['FecEnv'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-cubes"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Número de Piezas</div>
+                                    <div class="info-value">{{ is_array($respuesta['NumPie'] ?? null) ? implode(', ', $respuesta['NumPie']) : ($respuesta['NumPie'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Tipo de Régimen</div>
+                                    <div class="info-value">{{ is_array($respuesta['Regime'] ?? null) ? implode(', ', $respuesta['Regime']) : ($respuesta['Regime'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
                             <h5 class="text-secondary mb-3">Información de Destino (Destinatario)</h5>
-                            <p><strong><i class="fas fa-user me-2"></i>Nombre:</strong> {{ is_array($respuesta['NomDes'] ?? null) ? implode(', ', $respuesta['NomDes']) : ($respuesta['NomDes'] ?? 'No disponible') }}</p>
-                            <p><strong><i class="fas fa-map-marker-alt me-2"></i>Ciudad:</strong> {{ is_array($respuesta['CiuDes'] ?? null) ? implode(', ', $respuesta['CiuDes']) : ($respuesta['CiuDes'] ?? 'No disponible') }}</p>
-                            <p><strong><i class="fas fa-home me-2"></i>Dirección:</strong> {{ is_array($respuesta['DirDes'] ?? null) ? implode(', ', $respuesta['DirDes']) : ($respuesta['DirDes'] ?? 'No disponible') }}</p>
+                            
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Nombre</div>
+                                    <div class="info-value">{{ is_array($respuesta['NomDes'] ?? null) ? implode(', ', $respuesta['NomDes']) : ($respuesta['NomDes'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Ciudad de destino</div>
+                                    <div class="info-value">{{ is_array($respuesta['CiuDes'] ?? null) ? implode(', ', $respuesta['CiuDes']) : ($respuesta['CiuDes'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Dirección</div>
+                                    <div class="info-value">{{ is_array($respuesta['DirDes'] ?? null) ? implode(', ', $respuesta['DirDes']) : ($respuesta['DirDes'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Fecha de entrega</div>
+                                    <div class="info-value">{{ is_array($respuesta['FecEst'] ?? null) ? implode(', ', $respuesta['FecEst']) : ($respuesta['FecEst'] ?? 'No disponible') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Hora de entrega</div>
+                                    <div class="info-value">{{ isset($respuesta['FecEst']) ? date('H:i', strtotime(is_array($respuesta['FecEst']) ? $respuesta['FecEst'][0] : $respuesta['FecEst'])) : 'No disponible' }}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">PQR</div>
+                                    <div class="info-value">{{ $pqrTexto }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <h5 class="text-secondary mb-3">Información extra</h5>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Receptor</div>
+                            <div class="info-value">{{ is_array($respuesta['NomRec'] ?? null) ? implode(', ', $respuesta['NomRec']) : ($respuesta['NomRec'] ?? 'No disponible') }}</div>
                         </div>
                     </div>
 
-                    <hr>
-                    <h5 class="text-secondary mb-3">Información extra</h5>
-                    <p><strong><i class="fas fa-user-check me-2"></i>Receptor:</strong> {{ is_array($respuesta['NomRec'] ?? null) ? implode(', ', $respuesta['NomRec']) : ($respuesta['NomRec'] ?? 'No disponible') }}</p>
-                    <p><strong><i class="fas fa-credit-card me-2"></i>Forma de pago:</strong> {{ is_array($respuesta['FormPago'] ?? null) ? implode(', ', $respuesta['FormPago']) : ($respuesta['FormPago'] ?? 'No disponible') }}</p>
-                    <p><strong><i class="fas fa-box me-2"></i>Producto:</strong> {{ is_array($respuesta['NomProducto'] ?? null) ? implode(', ', $respuesta['NomProducto']) : ($respuesta['NomProducto'] ?? 'No disponible') }}</p>
-                    <p><strong><i class="fas fa-truck me-2"></i>Placa vehiculo:</strong> {{ is_array($respuesta['Placa'] ?? null) ? implode(', ', $respuesta['Placa']) : ($respuesta['Placa'] ?? 'No disponible') }}</p>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Forma de pago</div>
+                            <div class="info-value">{{ is_array($respuesta['FormPago'] ?? null) ? implode(', ', $respuesta['FormPago']) : ($respuesta['FormPago'] ?? 'No disponible') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Producto</div>
+                            <div class="info-value">{{ is_array($respuesta['NomProducto'] ?? null) ? implode(', ', $respuesta['NomProducto']) : ($respuesta['NomProducto'] ?? 'No disponible') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Placa vehículo</div>
+                            <div class="info-value">{{ is_array($respuesta['Placa'] ?? null) ? implode(', ', $respuesta['Placa']) : ($respuesta['Placa'] ?? 'No disponible') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Fecha de último movimiento</div>
+                            <div class="info-value">{{ is_array($respuesta['FechaProbable'] ?? null) ? implode(', ', $respuesta['FechaProbable']) : ($respuesta['FechaProbable'] ?? 'No disponible') }}</div>
+                        </div>
+                    </div>
+
                 @else
                     <div class="alert alert-warning" role="alert">
                         No se encontraron datos para esta guía.
                     </div>
                 @endif
+
+                {{-- BOTONES PERSONALIZADOS --}}
+                    <div class="buttons-container">
+                        <button type="button" class="btn-custom">
+                            <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
+                        </button>
+                        <button type="button" class="btn-custom">
+                            <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
+                        </button>
+                    </div>
             </div>
 
             <!-- TAB HISTORIAL -->

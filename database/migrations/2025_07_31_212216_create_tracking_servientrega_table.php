@@ -33,8 +33,8 @@ return new class extends Migration
             $table->string('forma_pago')->nullable();
             $table->string('nomb_producto')->nullable();
             $table->timestamp('fecha_probable')->nullable();
-            //$table->string('firma_path')->nullable(); // Descomentada y lista para su uso
-            $table->json('movimientos')->nullable(); // Nombrada 'movimientos' para contener el JSON completo
+            //$table->string('firma_path')->nullable(); // 
+            $table->json('movimientos')->nullable(); // 
             $table->timestamps();
         });
     }

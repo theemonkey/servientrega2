@@ -47,5 +47,71 @@
     transition: all 0.3s ease;
     margin-top: 45px;
 }
+/*Estilos-Animacion-carga-consultar*/
+.main-container {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .main-container.loading {
+            opacity: 0.3;
+            transform: scale(0.98);
+            pointer-events: none;
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: translate(-50%, -50%) scale(0.8);
+        }
+
+        .loading-indicator.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .pulse-animation {
+            width: 60px;
+            height: 60px;
+            background: #33549b;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: pulse 1.3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+        }
+
+        .btn-consultar {
+            transition: all 0.3s ease;
+        }
+
+        .btn-consultar:disabled {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
 
 
