@@ -33,8 +33,8 @@ class TrackingServientrega extends Model
         'forma_pago',
         'nomb_producto',
         'fecha_probable',
-        'firma_path', // Añadida la columna 'firma_path'
-        'movimientos',  
+        'imagen_base64',
+        'movimientos',
     ];
 
     protected $casts = [

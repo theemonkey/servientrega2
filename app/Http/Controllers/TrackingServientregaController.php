@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http; 
+use Illuminate\Support\Facades\Log;
 use App\Models\TrackingServientrega;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver; // o use Intervention\Image\Drivers\Imagick\Driver;
 
 class TrackingServientregaController extends Controller
 {
@@ -12,50 +15,101 @@ class TrackingServientregaController extends Controller
     private function limpiarValor($valor)
     {
         if (is_array($valor)) {
-            return implode(', ', array_filter($valor)); // Convierte array a string
+            return implode(', ', array_filter($valor));
         }
-        return $valor ?? null; // Si es null, devuelve null
+        return $valor ?? null;
+    }
+
+    // 🔹 Convertir TIFF base64 a PNG base64
+    private function convertirTiffAPng($tiffBase64)
+    {
+        try {
+            // Validar que la imagen no esté vacía
+            if (empty($tiffBase64)) {
+                throw new \Exception("Base64 image string is empty");
+            }
+
+            // Decodificar base64 a binario
+            $tiffBinario = base64_decode($tiffBase64);
+            if ($tiffBinario === false) {
+                throw new \Exception("Invalid base64 string");
+            }
+            
+            // Crear un archivo temporal
+            $tempTiffPath = tempnam(sys_get_temp_dir(), 'tiff_') . '.tiff';
+            file_put_contents($tempTiffPath, $tiffBinario);
+            
+            // Convertir TIFF a PNG usando Intervention Image v3
+            try {
+                // Crear manager con driver GD
+                $manager = new ImageManager(new Driver());
+                
+                // Leer la imagen
+                $image = $manager->read($tempTiffPath);
+                
+                // Convertir a PNG
+                $pngBinario = $image->toPng();
+                
+            } catch (\Exception $e) {
+                throw new \Exception("Error procesando imagen: " . $e->getMessage());
+            }
+            
+            // Limpiar archivo temporal
+            if(file_exists($tempTiffPath)) {
+                unlink($tempTiffPath);
+            }
+
+            // Convertir PNG a base64
+            return base64_encode($pngBinario);
+            
+        } catch (\Exception $e) {
+            Log::error("Error convirtiendo TIFF a PNG: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function consultarGuia(Request $request)
     {
         $request->validate([
-            'numero_guia' => 'required|numeric', //Solo acepta números en guia
+            'numero_guia' => 'required|numeric',
         ]);
 
         $numeroGuia = $request->input('numero_guia');
 
-        // Llamada GET al endpoint de Servientrega
         $response = Http::get("https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx/ConsultarGuiaExterno", [
             'NumeroGuia' => $numeroGuia
         ]);
         
         if ($response->successful()) {
-            // Parsear XML a array
             $xml = simplexml_load_string($response->body());
             $array = json_decode(json_encode($xml), true); 
 
-            // Navegar hasta los movimientos
             $movimientos = $array['Mov']['InformacionMov'] ?? [];
             if (!is_array($movimientos)) {
-                $movimientos = [$movimientos]; // Si solo hay 1 movimiento
+                $movimientos = [$movimientos];
             }
 
-            // Tomar el último movimiento como estado actual
             $ultimoMovimiento = end($movimientos);
-
             $estado = $ultimoMovimiento['NomMov'] ?? null;
             $ciudad = $ultimoMovimiento['DesMov'] ?? null;
             $fecha = isset($ultimoMovimiento['FecMov']) 
                 ? date('Y-m-d', strtotime($ultimoMovimiento['FecMov'])) 
                 : null;
 
-            // Identificador para updateOrCreate
-            $identificador = [
-                'numero_guia' => $numeroGuia,
-            ];
+            // 🔹 Capturar y convertir la imagen
+            $imagenBase64Original = null;
+            $imagenPngBase64 = null;
+            
+            if (isset($array['Imagen']) && !empty($array['Imagen'])) {
+                $imagenBase64Original = is_array($array['Imagen']) ? $array['Imagen'][0] : $array['Imagen'];
+                $imagenBase64Original = preg_replace('/\s+/', '', $imagenBase64Original);
+                
+                // Convertir TIFF a PNG
+                $imagenPngBase64 = $this->convertirTiffAPng($imagenBase64Original);
+            }
 
-            // Campos que se crearan o actualizaran
+            $identificador = ['numero_guia' => $numeroGuia];
+
             $datos = [
                 'fec_env' => $this->limpiarValor($array['FecEnv'] ?? null),
                 'num_pie' => $this->limpiarValor($array['NumPie'] ?? null),
@@ -76,14 +130,15 @@ class TrackingServientregaController extends Controller
                 'forma_pago' => $this->limpiarValor($array['FormPago'] ?? null),
                 'nomb_producto' => $this->limpiarValor($array['NomProducto'] ?? null),
                 'fecha_probable' => $this->limpiarValor($array['FechaProbable'] ?? null),
+                'imagen_base64' => $imagenPngBase64, // Guardar PNG convertido
                 'movimientos' => $movimientos, 
             ];
 
-            // Guardar o actualizar
-            TrackingServientrega::updateOrCreate($identificador, $datos);
+            $trackingRecord = TrackingServientrega::updateOrCreate($identificador, $datos);
 
             return view('resultados', [
                 'respuesta' => $array,
+                'trackingRecord' => $trackingRecord,
             ]);
         }
 

@@ -272,14 +272,14 @@
                 @endif
 
                 {{-- BOTONES PERSONALIZADOS --}}
-                    <div class="buttons-container">
-                        <button type="button" class="btn-custom">
-                            <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
-                        </button>
-                        <button type="button" class="btn-custom">
-                            <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
-                        </button>
-                    </div>
+                <div class="buttons-container">
+                    <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
+                        <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
+                    </button>
+                    <button type="button" class="btn-custom">
+                        <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
+                    </button>
+                </div>
             </div>
 
             <!-- TAB HISTORIAL -->
@@ -338,8 +338,8 @@
                                             ID: {{ is_array($movimiento['IdProc'] ?? null) ? implode(', ', $movimiento['IdProc']) : ($movimiento['IdProc'] ?? 'N/A') }}
                                         </span>
                                         @if(isset($movimiento['IdViewCliente']))
-                                            <span class="badge bg-info">
-                                                Cliente: {{ is_array($movimiento['IdViewCliente']) ? implode(', ', $movimiento['IdViewCliente']) : $movimiento['IdViewCliente'] }}
+                                           {{-- <span class="badge bg-info"> --}}
+                                               {{-- Cliente: {{ is_array($movimiento['IdViewCliente']) ? implode(', ', $movimiento['IdViewCliente']) : $movimiento['IdViewCliente'] }} --}}
                                             </span>
                                         @endif
                                     </div>
@@ -360,5 +360,55 @@
                 @endif
             </div>
         </div>
+
+        {{-- Modal para mostrar comprobante o imagen --}}
+        <div class="modal fade" id="comprobanteModal" tabindex="-1" aria-labelledby="comprobanteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl"> {{-- modal-xl para imagen grande --}}
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="comprobanteModalLabel">
+                            <i class="fas fa-receipt me-2"></i>Comprobante de Guía: 
+                            {{ is_array($respuesta['NumGui'] ?? null) ? implode(', ', $respuesta['NumGui']) : ($respuesta['NumGui'] ?? 'N/A') }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        @if(isset($trackingRecord) && $trackingRecord->imagen_base64)
+                        <div class="mb-3">
+                            <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64 }}" 
+                                alt="Comprobante de guía" 
+                                class="img-fluid border rounded shadow-sm"
+                                style="max-width: 100%; height: auto; max-height: 80vh;">
+                        </div>
+                        <div class="mt-3">
+                            <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64 }}" 
+                            download="comprobante-{{ is_array($respuesta['NumGui'] ?? null) ? ($respuesta['NumGui'][0] ?? 'guia') : ($respuesta['NumGui'] ?? 'guia') }}.png"
+                            class="btn btn-outline-primary">
+                                <i class="fas fa-download me-2"></i>Descargar Comprobante
+                            </a>
+                        </div> 
+                        @elseif(isset($respuesta['Imagen']) && !empty($respuesta['Imagen']))
+                        {{-- Fallback: Si no está en BD, mostrar mensaje informativo --}}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            La imagen está disponible pero no se puede mostrar en el navegador (formato TIFF). 
+                            <br>Se está procesando para conversión.
+                        </div>
+                        @else
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                No hay comprobante disponible para esta guía.
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 @endsection

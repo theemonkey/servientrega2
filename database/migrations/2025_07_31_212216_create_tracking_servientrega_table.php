@@ -33,8 +33,8 @@ return new class extends Migration
             $table->string('forma_pago')->nullable();
             $table->string('nomb_producto')->nullable();
             $table->timestamp('fecha_probable')->nullable();
-            //$table->string('firma_path')->nullable(); // 
-            $table->json('movimientos')->nullable(); // 
+            $table->json('movimientos')->nullable(); 
+            $table->longText('imagen_base64')->nullable();
             $table->timestamps();
         });
     }
@@ -45,5 +45,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tracking_servientrega');
+
     }
 };
