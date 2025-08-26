@@ -12,6 +12,8 @@ Route::get('/consultar', function () {
 Route::post('/consultar', [TrackingServientregaController::class, 'consultarGuia'])->name('consultar');
 Route::get('/', function(){ return redirect('/consultar');})->name('consultar');
 
+// Ruta para acceso sin formulario de consulta
+Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGuia'])->name('guia');
 
 
 
