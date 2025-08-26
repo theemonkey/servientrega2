@@ -265,21 +265,44 @@
                         </div>
                     </div>
 
+                    {{-- BOTONES PERSONALIZADOS EN TAB DETALLES --}}
+                    <div class="buttons-container">
+                        <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
+                            <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
+                        </button>
+                        <button type="button" class="btn-custom" id="toggleMapBtn">
+                            <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
+                        </button>
+                    </div>
+
+                    {{-- CONTENEDOR DEL MAPA EN TAB DETALLES --}}
+                    <div id="mapContainer" class="map-container mt-4" style="display: none;">
+                        <div class="map-header">
+                            <div class="map-status-indicators">                {{--Segun estados de envio--}}
+                                <span class="status-indicator {{ ($idEstadoActual == '3') ? 'status-entregado' : 'status-inactive' }}">
+                                    <i class="fas fa-check-circle"></i> Entregado
+                                </span>
+                                <span class="status-indicator {{ ($idEstadoActual == '4') ? 'status-devuelto' : 'status-inactive' }}">
+                                    <i class="fas fa-undo-alt"></i> Devuelto
+                                </span>
+                                <span class="status-indicator  {{ ($idEstadoActual == '2') ? 'status-proceso' : 'status-inactive' }}">
+                                    <i class="fas fa-truck"></i> En Proceso
+                                </span>
+                            </div>
+                            <p class="map-disclaimer">
+                                <i class="fas fa-info-circle me-1"></i>
+                                El rastreo de envíos en el mapa solo aplica para ciudades principales.
+                            </p>
+                        </div>
+                        <div id="map" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+                    </div>
+
                 @else
                     <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
                         No se encontraron datos para esta guía.
                     </div>
                 @endif
-
-                {{-- BOTONES PERSONALIZADOS --}}
-                <div class="buttons-container">
-                    <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
-                        <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
-                    </button>
-                    <button type="button" class="btn-custom">
-                        <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
-                    </button>
-                </div>
             </div>
 
             <!-- TAB HISTORIAL -->
@@ -337,15 +360,43 @@
                                         <span class="badge bg-secondary mb-1">
                                             ID: {{ is_array($movimiento['IdProc'] ?? null) ? implode(', ', $movimiento['IdProc']) : ($movimiento['IdProc'] ?? 'N/A') }}
                                         </span>
-                                        @if(isset($movimiento['IdViewCliente']))
-                                           {{-- <span class="badge bg-info"> --}}
-                                               {{-- Cliente: {{ is_array($movimiento['IdViewCliente']) ? implode(', ', $movimiento['IdViewCliente']) : $movimiento['IdViewCliente'] }} --}}
-                                            </span>
-                                        @endif
                                     </div>
                                 </li>
                             @endforeach
                         </ul>
+
+                        {{-- BOTONES PERSONALIZADOS EN TAB HISTORIAL --}}
+                        <div class="buttons-container mt-4">
+                            <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
+                                <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
+                            </button>
+                            <button type="button" class="btn-custom" id="toggleMapBtnHistorial">
+                                <i class="fas fa-map-marked-alt me-2"></i>VER MAPA
+                            </button>
+                        </div>
+
+                        {{-- CONTENEDOR DEL MAPA EN TAB HISTORIAL --}}
+                        <div id="mapContainerHistorial" class="map-container mt-4" style="display: none;">
+                            <div class="map-header">
+                                <div class="map-status-indicators">                {{--Segun estados de envio--}}
+                                    <span class="status-indicator {{ ($idEstadoActual == '3') ? 'status-entregado' : 'status-inactive' }}">
+                                        <i class="fas fa-check-circle"></i> Entregado
+                                    </span>
+                                    <span class="status-indicator {{ ($idEstadoActual == '4' ) ? 'status-devuelto' : 'status-inactive' }}">
+                                        <i class="fas fa-undo-alt"></i> Devuelto
+                                    </span>
+                                    <span class="status-indicator {{ ($idEstadoActual == '2') ? 'status-proceso' : 'status-inactive' }}">
+                                        <i class="fas fa-truck"></i> En Proceso
+                                    </span>
+                                </div>
+                                <p class="map-disclaimer">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    El rastreo de envíos en el mapa solo aplica para ciudades principales.
+                                </p>
+                            </div>
+                            <div id="mapHistorial" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+                        </div>
+
                     @else
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
@@ -363,7 +414,7 @@
 
         {{-- Modal para mostrar comprobante o imagen --}}
         <div class="modal fade" id="comprobanteModal" tabindex="-1" aria-labelledby="comprobanteModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl"> {{-- modal-xl para imagen grande --}}
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="comprobanteModalLabel">
@@ -388,7 +439,6 @@
                             </a>
                         </div> 
                         @elseif(isset($respuesta['Imagen']) && !empty($respuesta['Imagen']))
-                        {{-- Fallback: Si no está en BD, mostrar mensaje informativo --}}
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
                             La imagen está disponible pero no se puede mostrar en el navegador (formato TIFF). 
@@ -409,6 +459,26 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+    {{-- SCRIPTS DE GOOGLE MAPS --}}
+    <script>
+        // Datos del envío para JavaScript
+        window.envioData = {
+            ciudadOrigen: @json(is_array($respuesta['CiuRem'] ?? null) ? (is_array($respuesta['CiuRem']) ? $respuesta['CiuRem'][0] : $respuesta['CiuRem']) : ''),
+            ciudadDestino: @json(is_array($respuesta['CiuDes'] ?? null) ? (is_array($respuesta['CiuDes']) ? $respuesta['CiuDes'][0] : $respuesta['CiuDes']) : ''),
+            estadoActual: @json($idEstadoActual ?? ''),
+            movimientos: @json($movimientos ?? [])
+        };
+        
+        // Debug para verificar datos
+        console.log('Datos cargados para el mapa:', window.envioData);
+    </script>
+
+    {{-- Cargar Google Maps API - Key--}}
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw&libraries=geometry&callback=initMap"></script>
+    
+    {{-- Cargar el archivo JavaScript del mapa --}}
+    <script src="{{ asset('js/tracking-map.js') }}"></script>
+
 @endsection

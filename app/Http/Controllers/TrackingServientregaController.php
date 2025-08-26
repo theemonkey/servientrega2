@@ -11,7 +11,7 @@ use Intervention\Image\Drivers\Gd\Driver; // o use Intervention\Image\Drivers\Im
 
 class TrackingServientregaController extends Controller
 {
-    // 🔹 Helper para limpiar valores antes de guardar
+    // Helper para limpiar valores antes de guardar
     private function limpiarValor($valor)
     {
         if (is_array($valor)) {
@@ -20,7 +20,7 @@ class TrackingServientregaController extends Controller
         return $valor ?? null;
     }
 
-    // 🔹 Convertir TIFF base64 a PNG base64
+    // Convertir TIFF base64 a PNG base64
     private function convertirTiffAPng($tiffBase64)
     {
         try {
@@ -96,7 +96,7 @@ class TrackingServientregaController extends Controller
                 ? date('Y-m-d', strtotime($ultimoMovimiento['FecMov'])) 
                 : null;
 
-            // 🔹 Capturar y convertir la imagen
+            // Capturar y convertir la imagen
             $imagenBase64Original = null;
             $imagenPngBase64 = null;
             
