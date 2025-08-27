@@ -379,3 +379,30 @@
     color: #ffffff !important;
     opacity: 0.6 !important;
 }
+
+/* ===>> Estilos para mejorar la apariencia de los mapas ===<<<*/
+/*Nota: Pendiente cambiar color a marcadores del mapa segun colores de iconos en historial de movimientos.*/
+.leaflet-container {
+    font-family: inherit;
+}
+
+.leaflet-popup-content {
+    margin: 8px 12px;
+    line-height: 1.4;
+}
+
+.leaflet-popup-content h6 {
+    margin: 0 0 8px 0;
+}
+
+.leaflet-routing-container {
+    display: none; /* Ocultar las instrucciones de ruta por defecto */
+}
+
+/* Mejorar la apariencia de los botones de mapa activos */
+.btn-custom.btn-active {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}

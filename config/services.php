@@ -32,9 +32,8 @@ return [
     ],
 
     'servientrega' => [
-        'api_url' => env('SERVIENTREGA_API_URL'),
-        'username' => env('SERVIENTREGA_API_USERNAME'),
-        'password' => env('SERVIENTREGA_API_PASSWORD'),
+        'login' => env('SERVIENTREGA_LOGIN', 'luis1937'),
+        'password' => env('SERVIENTREGA_PASSWORD', 'MZR0zNqnI/KplFlYXiFk7m8/G/Iqxb3O'),
+        'cod_facturacion' => env('SERVIENTREGA_COD_FACTURACION', 'SER408'),
     ],
-
 ];

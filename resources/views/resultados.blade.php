@@ -461,7 +461,7 @@
         </div>
     </div>
 
-    {{-- SCRIPTS DE GOOGLE MAPS --}}
+    {{-- SCRIPTS DE MAPS --}}
     <script>
         // Datos del envío para JavaScript
         window.envioData = {
@@ -475,10 +475,16 @@
         console.log('Datos cargados para el mapa:', window.envioData);
     </script>
 
-    {{-- Cargar Google Maps API - Key--}}
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw&libraries=geometry&callback=initMap"></script>
-    
+    {{-- Api de maps de Leaflet/OpenStreetMap: --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="{{ asset('js/tracking-map-leaflet.js') }}"></script>
+
+    {{-- En caso de Cargar Google Maps API - Key--}}
+    {{--<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw&libraries=geometry&callback=initMap"></script>--}}
     {{-- Cargar el archivo JavaScript del mapa --}}
-    <script src="{{ asset('js/tracking-map.js') }}"></script>
+    {{--<script src="{{ asset('js/tracking-map.js') }}"></script>--}}
 
 @endsection

@@ -579,3 +579,6 @@ window.addEventListener('load', function() {
         }
     }, 3000);
 });
+
+/*Nota: Pendiente validar que la simulacion no se active ahora que solucionamos lo del mapa
+no aparece mapa cuando se consulta guia directamente */

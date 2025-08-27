@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingServientregaController;
+use App\Http\Controllers\GuiaEnvioController;
+use Illuminate\Support\Facades\Auth;
 
 //Muestra formulario para ingresar la guia
 Route::get('/consultar', function () {
@@ -15,7 +17,12 @@ Route::get('/', function(){ return redirect('/consultar');})->name('consultar');
 // Ruta para acceso sin formulario de consulta
 Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGuia'])->name('guia');
 
-
+// Ruta para la creacion de una nueva guia industrial
+/*Route::middleware('auth')->group(function () {
+    Route::resource('guias', GuiaEnvioController::class);
+    Route::get('guias/{guia}/regenerar', [GuiaEnvioController::class, 'mostrarRegeneracion'])->name('show');
+    Route::post('guias/{guia}/regenerar', [GuiaEnvioController::class, 'regenerar'])->name('crear.guia');
+});*/
 
 
 
