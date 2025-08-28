@@ -19,7 +19,7 @@
             </ul>
         </div>
         <div class="card-body tab-content" id="myTabContent">
-            <!-- TAB DETALLE -->
+            <!-- TABLA DETALLE -->
             <div class="tab-pane fade show active" id="detalle" role="tabpanel" aria-labelledby="detalle-tab">
                 @if(isset($respuesta['Mov']))
                     @php
@@ -265,7 +265,7 @@
                         </div>
                     </div>
 
-                    {{-- BOTONES PERSONALIZADOS EN TAB DETALLES --}}
+                    {{-- BOTONES PERSONALIZADOS EN TABLA DETALLES --}}
                     <div class="buttons-container">
                         <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
                             <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
@@ -275,17 +275,17 @@
                         </button>
                     </div>
 
-                    {{-- CONTENEDOR DEL MAPA EN TAB DETALLES --}}
+                    {{-- CONTENEDOR DEL MAPA EN TABLA DETALLES --}}
                     <div id="mapContainer" class="map-container mt-4" style="display: none;">
                         <div class="map-header">
-                            <div class="map-status-indicators">                {{--Segun estados de envio--}}
+                            <div class="map-status-indicators">
                                 <span class="status-indicator {{ ($idEstadoActual == '3') ? 'status-entregado' : 'status-inactive' }}">
                                     <i class="fas fa-check-circle"></i> Entregado
                                 </span>
                                 <span class="status-indicator {{ ($idEstadoActual == '4') ? 'status-devuelto' : 'status-inactive' }}">
                                     <i class="fas fa-undo-alt"></i> Devuelto
                                 </span>
-                                <span class="status-indicator  {{ ($idEstadoActual == '2') ? 'status-proceso' : 'status-inactive' }}">
+                                <span class="status-indicator {{ ($idEstadoActual == '2') ? 'status-proceso' : 'status-inactive' }}">
                                     <i class="fas fa-truck"></i> En Proceso
                                 </span>
                             </div>
@@ -294,7 +294,24 @@
                                 El rastreo de envíos en el mapa solo aplica para ciudades principales.
                             </p>
                         </div>
-                        <div id="map" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+
+                        {{-- Contenedor del mapa para permitir SCROLL --}}
+                        <div class="map-wrapper" style="height: 400px; position: relative; overflow: hidden; border-radius: 8px;">
+                            <div id="map" style="height: 100%; width: 100%;"></div>
+
+                            {{-- Disclaimer aviso legal inferior --}}
+                           {{-- Disclaimer aviso legal inferior --}}
+                            <div class="map-legal-disclaimer" tabindex="0" role="region" aria-label="Información legal del mapa">
+                                <div class="legal-content">
+                                    <i class="fas fa-info-circle me-2 text-muted" aria-hidden="true"></i>
+                                    <small class="text-muted">
+                                        Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas. 
+                                        Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no 
+                                        representar la ubicación exacta del envío.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 @else
@@ -305,7 +322,7 @@
                 @endif
             </div>
 
-            <!-- TAB HISTORIAL -->
+            <!-- TABLA HISTORIAL -->
             <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
                 <h5 class="mb-3">Historial de Movimientos</h5>
                 
@@ -365,7 +382,7 @@
                             @endforeach
                         </ul>
 
-                        {{-- BOTONES PERSONALIZADOS EN TAB HISTORIAL --}}
+                        {{-- BOTONES PERSONALIZADOS EN TABLA HISTORIAL --}}
                         <div class="buttons-container mt-4">
                             <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
                                 <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
@@ -378,11 +395,11 @@
                         {{-- CONTENEDOR DEL MAPA EN TAB HISTORIAL --}}
                         <div id="mapContainerHistorial" class="map-container mt-4" style="display: none;">
                             <div class="map-header">
-                                <div class="map-status-indicators">                {{--Segun estados de envio--}}
+                                <div class="map-status-indicators">
                                     <span class="status-indicator {{ ($idEstadoActual == '3') ? 'status-entregado' : 'status-inactive' }}">
                                         <i class="fas fa-check-circle"></i> Entregado
                                     </span>
-                                    <span class="status-indicator {{ ($idEstadoActual == '4' ) ? 'status-devuelto' : 'status-inactive' }}">
+                                    <span class="status-indicator {{ ($idEstadoActual == '4') ? 'status-devuelto' : 'status-inactive' }}">
                                         <i class="fas fa-undo-alt"></i> Devuelto
                                     </span>
                                     <span class="status-indicator {{ ($idEstadoActual == '2') ? 'status-proceso' : 'status-inactive' }}">
@@ -394,7 +411,23 @@
                                     El rastreo de envíos en el mapa solo aplica para ciudades principales.
                                 </p>
                             </div>
-                            <div id="mapHistorial" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+
+                            {{-- Contenedor del mapa para permitir SCROLL --}}
+                            <div class="map-wrapper" style="height: 400px; position: relative; overflow: hidden; border-radius: 8px;">
+                                <div id="mapHistorial" style="height: 100%; width: 100%;"></div>
+                                
+                                {{-- Disclaimer aviso legal inferior --}}
+                                <div class="map-legal-disclaimer" tabindex="0" role="region" aria-label="Información legal del mapa">
+                                    <div class="legal-content">
+                                        <i class="fas fa-info-circle me-2 text-muted" aria-hidden="true"></i>
+                                        <small class="text-muted">
+                                            Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas.
+                                            Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no 
+                                            representar la ubicación exacta del envío. 
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                     @else
@@ -481,10 +514,5 @@
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="{{ asset('js/tracking-map-leaflet.js') }}"></script>
-
-    {{-- En caso de Cargar Google Maps API - Key--}}
-    {{--<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw&libraries=geometry&callback=initMap"></script>--}}
-    {{-- Cargar el archivo JavaScript del mapa --}}
-    {{--<script src="{{ asset('js/tracking-map.js') }}"></script>--}}
 
 @endsection

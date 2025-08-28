@@ -302,7 +302,7 @@
 }
 
 .status-entregado {
-    background-color: #28a745;
+    background-color: #198754;
 }
 
 .status-devuelto {
@@ -363,9 +363,9 @@
 }
 
 .map-status-indicators .status-indicator.status-devuelto {
-    background-color: #dc3545 !important;
+    background-color: #fd7e14 !important;
     color: #ffffff !important;
-    border: 2px solid #c82333 !important;
+    border: 2px solid #fa7406 !important;
 }
 
 .map-status-indicators .status-indicator.status-proceso {
@@ -401,8 +401,141 @@
 
 /* Mejorar la apariencia de los botones de mapa activos */
 .btn-custom.btn-active {
-    background-color: #0056b3;
-    border-color: #0056b3;
+    background-color: #33549b;
+    border-color: #1e3a5f;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* ===>>> Disclaimer/scroll aviso ===<<<*/
+.map-wrapper {
+    position: relative;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.map-legal-disclaimer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 80px; /* Aumentado para mostrar más contenido inicialmente */
+    min-height: 40px; /* Altura mínima garantizada */
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+    cursor: pointer; /* Indicar que es interactivo */
+}
+
+.map-legal-disclaimer:hover {
+    max-height: 150px; /* Más espacio al hacer hover */
+}
+
+.legal-content {
+    padding: 10px 12px;
+    font-size: 12px; /* Ligeramente más grande */
+    line-height: 1.5; /* Mejor espaciado entre líneas */
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    word-wrap: break-word; /* Forzar salto de línea */
+    white-space: normal; /* Permitir múltiples líneas */
+}
+
+.legal-content small {
+    margin: 0;
+    flex: 1;
+    white-space: normal; /* IMPORTANTE: Permitir salto de línea */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto; /* Separación de palabras */
+}
+
+.legal-content i {
+    flex-shrink: 0; /* El icono no se encoge */
+    margin-top: 2px; /* Alinear con el texto */
+}
+
+/* Scrollbar personalizada más visible */
+.map-legal-disclaimer::-webkit-scrollbar {
+    width: 5px;
+}
+
+.map-legal-disclaimer::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.map-legal-disclaimer::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 3px;
+}
+
+.map-legal-disclaimer::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+/* Indicador visual de scroll más visible */
+.map-legal-disclaimer::after {
+    content: '⌄'; /* Usar símbolo unicode */
+    position: absolute;
+    bottom: 2px;
+    right: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.map-legal-disclaimer:hover::after {
+    opacity: 0;
+}
+
+/* Efecto de gradiente para indicar más contenido */
+.map-legal-disclaimer::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 15px;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.8));
+    pointer-events: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.map-legal-disclaimer:hover::before {
+    opacity: 0;
+}
+
+/* Versión móvil mejorada */
+@media (max-width: 768px) {
+    .legal-content {
+        padding: 8px 10px;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+    
+    .map-legal-disclaimer {
+        max-height: 70px;
+        min-height: 35px;
+    }
+    
+    .map-legal-disclaimer:hover {
+        max-height: 120px;
+    }
+}
+
+/* Estado activo/focus para accesibilidad */
+.map-legal-disclaimer:focus-within {
+    max-height: 150px;
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
 }
