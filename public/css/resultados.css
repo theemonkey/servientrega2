@@ -46,6 +46,7 @@
     background-color: #dc3545;
     color: white;
 }
+
 /* Color Historial de movimientos */
 .list-group-item {
     border: none;
@@ -54,11 +55,25 @@
     border-radius: 8px;
     padding: 12px 15px;
     background-color: #f8f9fa;
+    transition: all 0.3s ease-in-out;
+}
+
+.list-group-item:hover {
+    background-color: #e9f2ff;
+    transform: translateX(3px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .list-group-item strong {
     font-size: 1rem;
     color: #343a40;
+}
+
+.list-group-item small {
+    display: block;
+    margin-top: 3px;
+    color: #6c757d;
+    font-size: 0.85rem;
 }
 
 /* Estilo para el badge de Cliente */
@@ -71,48 +86,40 @@
     border-radius: 4px;
 }
 
-.list-group-item small {
-    display: block;
-    margin-top: 3px;
-    color: #6c757d;
-    font-size: 0.85rem;
-}
-
-/* Hover sobre movimientos */
-.list-group-item:hover {
-    background-color: #e9f2ff;
-    transition: 0.3s;
-}
-
 /*Color de division entre secciones*/
 .text-secondary.mb-3 {
     color: #797979 !important;
     padding: 12px 15px;
     background-color: #f8f9fa;
     border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.05); /* Borde transparente muy sutil */
+    border: 1px solid rgba(0, 0, 0, 0.05);
     margin-bottom: 1.5rem !important;
-    transition: all 0.2s ease; /* Transición suave */
+    transition: all 0.2s ease;
 }
 
 .text-secondary.mb-3:hover {
-    background-color: #f5f5f5;   /* hover sutil */
+    background-color: #f5f5f5;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/*Estilos para la tabla de detalles/Historial*/
 /* Ajuste de tabs */
 .nav-tabs .nav-link {
     color: #33549b;
     font-weight: bold;
     border-bottom: 2px solid #33549b;
-}
-.nav-tabs .nav-link.active {
-    color: #33549b;
-    /*border-bottom: 2px solid #797979;*/
+    transition: all 0.3s ease-in-out;
 }
 
-/* Historial */
+.nav-tabs .nav-link:hover {
+    transform: translateY(-1px);
+}
+
+.nav-tabs .nav-link.active {
+    color: #33549b;
+    transform: translateY(0);
+}
+
+/* Tipos de movimientos */
 .list-group-item i {
     margin-right: 5px;
 }
@@ -140,29 +147,6 @@
 .tab-pane.show.active {
     opacity: 1;
     transform: translateY(0);
-}
-
-/* Transición suave para los botones de pestañas */
-.nav-tabs .nav-link {
-    transition: all 0.3s ease-in-out;
-}
-
-.nav-tabs .nav-link:hover {
-    transform: translateY(-1px);
-}
-
-.nav-tabs .nav-link.active {
-    transform: translateY(0);
-}
-
-/* Transición para elementos de la lista en historial */
-.list-group-item {
-    transition: all 0.3s ease-in-out;
-}
-
-.list-group-item:hover {
-    transform: translateX(3px);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 /* == Eliminar línea debajo del título ==*/
@@ -201,6 +185,12 @@
 
 .btn-custom:focus {
     outline: none;
+    box-shadow: 0 0 0 3px rgba(51, 84, 155, 0.3);
+}
+
+/* Estilos para el botón mapa activo */
+.btn-custom.btn-active {
+    background-color: #1e3a5f;
     box-shadow: 0 0 0 3px rgba(51, 84, 155, 0.3);
 }
 
@@ -253,24 +243,6 @@
     line-height: 1.4;
 }
 
-@media (max-width: 768px) {
-    .buttons-container {
-        flex-direction: column;
-    }
-    
-    .btn-custom {
-        width: 100%;
-        text-align: center;
-    }
-
-    .info-icon {
-        font-size: 1.25rem;
-        width: 2rem;
-        height: 2rem;
-        margin-right: 0.75rem;
-    }
-}
-
 /* === Estilos para el mapa === */
 .map-container {
     background-color: #f8f9fa;
@@ -294,24 +266,36 @@
 .status-indicator {
     display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
     font-weight: 500;
-    color: white;
+    margin-right: 8px;
+    transition: all 0.3s ease;
 }
 
-.status-entregado {
-    background-color: #198754;
+.status-indicator.status-entregado {
+    background-color: #198754 !important;
+    color: #ffffff !important;
+    border: 2px solid #1e7e34 !important;
 }
 
-.status-devuelto {
-    background-color: #dc3545;
+.status-indicator.status-devuelto {
+    background-color: #fd7e14 !important;
+    color: #ffffff !important;
+    border: 2px solid #fa7406 !important;
 }
 
-.status-proceso {
-    background-color: #ffc107;
-    color: #000;
+.status-indicator.status-proceso {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    border: 2px solid #e0a800 !important;
+}
+
+.status-indicator.status-inactive {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    opacity: 0.6 !important;
 }
 
 .map-disclaimer {
@@ -321,67 +305,78 @@
     font-style: italic;
 }
 
-#map {
+#map, #mapHistorial {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     border: 1px solid #ddd;
 }
 
-/* Responsive para el mapa */
-@media (max-width: 768px) {
-    .map-status-indicators {
-        justify-content: center;
-    }
-    
-    .status-indicator {
-        font-size: 12px;
-        padding: 4px 8px;
-    }
+/* ===>>> Disclaimer debajo del mapa ===<<<*/
+.map-wrapper {
+    position: relative !important;
+    border: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0; /* Solo esquinas superiores redondeadas */
+    overflow: hidden !important;
+    box-shadow: none !important; /* Sin sombra individual */
 }
 
-/* Estilos para el botón mapa activo */
-.btn-custom.btn-active {
-    background-color: #1e3a5f;
-    box-shadow: 0 0 0 3px rgba(51, 84, 155, 0.3);
+.map-external-disclaimer {
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-top: none !important; /* Sin borde superior para continuidad */
+    border-radius: 0 0 8px 8px !important; /* Solo esquinas inferiores redondeadas */
+    padding: 12px 15px !important;
+    margin: 0 !important; /* Sin margen para continuidad visual */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; /* Sombra sutil */
 }
 
-/* ==== Estado inactivo para indicadores del mapa==== */
-.map-status-indicators .status-indicator {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 10px;
+.disclaimer-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+.disclaimer-content i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.disclaimer-content small {
+    flex: 1;
+    color: #6c757d !important;
+    font-size: 13px;
     font-weight: 500;
-    margin-right: 8px;
-    transition: all 0.3s ease;
+    margin: 0;
+    line-height: 1.5;
 }
 
-.map-status-indicators .status-indicator.status-entregado {
-    background-color: #198754 !important;
-    color: #ffffff !important;
-    border: 2px solid #1e7e34 !important;
+/* Hover sutil para interactividad */
+.map-external-disclaimer:hover {
+    background: #f1f3f4;
+    transition: background-color 0.2s ease;
 }
 
-.map-status-indicators .status-indicator.status-devuelto {
-    background-color: #fd7e14 !important;
-    color: #ffffff !important;
-    border: 2px solid #fa7406 !important;
+/* Asegurar que los controles de Leaflet estén visibles */
+.leaflet-control-container {
+    pointer-events: auto !important;
+    z-index: 1000 !important;
 }
 
-.map-status-indicators .status-indicator.status-proceso {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-    border: 2px solid #e0a800 !important;
+.leaflet-control-attribution {
+    pointer-events: auto !important;
+    z-index: 1001 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    font-size: 12px !important;
+    padding: 2px 5px !important;
+    margin: 0 !important;
+    border-radius: 3px !important;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2) !important;
 }
 
-.map-status-indicators .status-indicator.status-inactive {
-    background-color: #6c757d !important;
-    color: #ffffff !important;
-    opacity: 0.6 !important;
-}
-
-/* ===>> Estilos para mejorar la apariencia de los mapas ===<<<*/
-/*Nota: Pendiente cambiar color a marcadores del mapa segun colores de iconos en historial de movimientos.*/
+/* === ESTILOS LEAFLET MEJORADOS === */
 .leaflet-container {
     font-family: inherit;
 }
@@ -399,143 +394,64 @@
     display: none; /* Ocultar las instrucciones de ruta por defecto */
 }
 
-/* Mejorar la apariencia de los botones de mapa activos */
-.btn-custom.btn-active {
-    background-color: #33549b;
-    border-color: #1e3a5f;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* ===>>> Disclaimer/scroll aviso ===<<<*/
-.map-wrapper {
-    position: relative;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.map-legal-disclaimer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(5px);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    max-height: 80px; /* Aumentado para mostrar más contenido inicialmente */
-    min-height: 40px; /* Altura mínima garantizada */
-    overflow-y: auto;
-    transition: max-height 0.3s ease;
-    cursor: pointer; /* Indicar que es interactivo */
-}
-
-.map-legal-disclaimer:hover {
-    max-height: 150px; /* Más espacio al hacer hover */
-}
-
-.legal-content {
-    padding: 10px 12px;
-    font-size: 12px; /* Ligeramente más grande */
-    line-height: 1.5; /* Mejor espaciado entre líneas */
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    word-wrap: break-word; /* Forzar salto de línea */
-    white-space: normal; /* Permitir múltiples líneas */
-}
-
-.legal-content small {
-    margin: 0;
-    flex: 1;
-    white-space: normal; /* IMPORTANTE: Permitir salto de línea */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto; /* Separación de palabras */
-}
-
-.legal-content i {
-    flex-shrink: 0; /* El icono no se encoge */
-    margin-top: 2px; /* Alinear con el texto */
-}
-
-/* Scrollbar personalizada más visible */
-.map-legal-disclaimer::-webkit-scrollbar {
-    width: 5px;
-}
-
-.map-legal-disclaimer::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 3px;
-}
-
-.map-legal-disclaimer::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 3px;
-}
-
-.map-legal-disclaimer::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.6);
-}
-
-/* Indicador visual de scroll más visible */
-.map-legal-disclaimer::after {
-    content: '⌄'; /* Usar símbolo unicode */
-    position: absolute;
-    bottom: 2px;
-    right: 8px;
-    font-size: 12px;
-    color: #6c757d;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.map-legal-disclaimer:hover::after {
-    opacity: 0;
-}
-
-/* Efecto de gradiente para indicar más contenido */
-.map-legal-disclaimer::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 15px;
-    background: linear-gradient(transparent, rgba(255, 255, 255, 0.8));
-    pointer-events: none;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-.map-legal-disclaimer:hover::before {
-    opacity: 0;
-}
-
-/* Versión móvil mejorada */
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
-    .legal-content {
-        padding: 8px 10px;
-        font-size: 11px;
-        line-height: 1.4;
+    .buttons-container {
+        flex-direction: column;
     }
     
-    .map-legal-disclaimer {
-        max-height: 70px;
-        min-height: 35px;
+    .btn-custom {
+        width: 100%;
+        text-align: center;
+    }
+
+    .info-icon {
+        font-size: 1.25rem;
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0.75rem;
     }
     
-    .map-legal-disclaimer:hover {
-        max-height: 120px;
+    .map-status-indicators {
+        justify-content: center;
+    }
+    
+    .status-indicator {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    
+    .map-external-disclaimer {
+        padding: 10px 12px;
+    }
+    
+    .disclaimer-content {
+        font-size: 12px;
+    }
+    
+    .disclaimer-content small {
+        font-size: 12px;
+    }
+    
+    .disclaimer-content i {
+        font-size: 13px;
     }
 }
 
-/* Estado activo/focus para accesibilidad */
-.map-legal-disclaimer:focus-within {
-    max-height: 150px;
-    outline: 2px solid #007bff;
-    outline-offset: -2px;
+@media (max-width: 480px) {
+    .map-external-disclaimer {
+        padding: 8px 10px;
+    }
+    
+    .disclaimer-content {
+        font-size: 11px;
+    }
+    
+    .disclaimer-content small {
+        font-size: 11px;
+    }
+    
+    .disclaimer-content i {
+        font-size: 12px;
+    }
 }
