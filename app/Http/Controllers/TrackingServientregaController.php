@@ -25,31 +25,25 @@ class TrackingServientregaController extends Controller
     {
         try {
             if (empty($tiffBase64)) {
-                throw new \Exception("Base64 image string is empty");
-            }
+                    return null;
+                }
 
+            // Decodifica la cadena Base64 a datos binarios
             $tiffBinario = base64_decode($tiffBase64);
-            if ($tiffBinario === false) {
-                throw new \Exception("Invalid base64 string");
-            }
-            
-            $tempTiffPath = tempnam(sys_get_temp_dir(), 'tiff_') . '.tiff';
-            file_put_contents($tempTiffPath, $tiffBinario);
-            
-            try {
-                $manager = new ImageManager(new Driver());
-                $image = $manager->read($tempTiffPath);
-                $pngBinario = $image->toPng();
-            } catch (\Exception $e) {
-                throw new \Exception("Error procesando imagen: " . $e->getMessage());
-            }
-            
-            if(file_exists($tempTiffPath)) {
-                unlink($tempTiffPath);
-            }
+                if ($tiffBinario === false) {
+                    throw new \Exception("Invalid base64 string");
+                }
 
+            // Usa Intervention Image para leer directamente los datos binarios
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($tiffBinario); // Lee desde la cadena binaria, no desde un archivo
+                
+            // Convierte a PNG binario
+            $pngBinario = $image->toPng();
+                
+            // Devuelve la cadena Base64
             return base64_encode($pngBinario);
-            
+
         } catch (\Exception $e) {
             Log::error("Error convirtiendo TIFF a PNG: " . $e->getMessage());
             return null;
@@ -59,6 +53,9 @@ class TrackingServientregaController extends Controller
     // ===>> MÉTODO PRINCIPAL - Procesa cualquier guía ===>>
     private function procesarGuia($numeroGuia, $logAcceso = false)
     {
+        // Aumentar límite de memoria para el script
+        ini_set('memory_limit', '512M');
+
         // Validar formato de guía
         if (!preg_match('/^[0-9]+$/', $numeroGuia)) {
             throw new \Exception('Formato de guía inválido');
