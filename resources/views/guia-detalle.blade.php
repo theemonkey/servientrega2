@@ -4,7 +4,7 @@
  * VISTA DE RESULTADOS DE RASTREO DE GUÍAS DIRECTO(sin formulario)
  * ===============================================
  * 
- * Descripción: Vista principal para mostrar información detallada de guias
+ * Descripción: Vista principal para mostrar información detallada de la guia
  * de rastreo con pestañas para detalles e historial, incluyendo mapas interactivos
  * 
  * Funcionalidades:
