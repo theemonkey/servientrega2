@@ -258,6 +258,17 @@ class TrackingServientregaController extends Controller
      *     Log::error('Error procesando guía: ' . $e->getMessage());
      * }
      *
+     * Estructura de respuesta API (XML -> Array):
+     * - NumGui: Número de guía
+     * - FecEnv: Fecha de envío
+     * - CiuRem/CiuDes: Ciudad remitente/destinatario
+     * - NomRem/NomDes: Nombre remitente/destinatario
+     * - DirRem/DirDes: Dirección remitente/destinatario
+     * - IdEstAct/EstAct: ID y descripción estado actual
+     * - FecEst: Fecha del estado
+     * - Imagen: Comprobante en TIFF base64
+     * - Mov.InformacionMov: Array de movimientos
+     *
      * @see https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx
      */
     private function procesarGuia($numeroGuia, $logAcceso = false)

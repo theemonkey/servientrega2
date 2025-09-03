@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 //Muestra formulario para ingresar la guia
 Route::get('/consultar', function () {
-    return view('consultar');
+    return view('consultar'); 
 });
 
 // Esta ruta procesará la guía que se envía desde el formulario
@@ -18,9 +18,22 @@ Route::get('/', function(){ return redirect('/consultar');})->name('consultar');
 Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGuia'])->name('guia');
 
 
+// Seguimiento imagen
+Route::get('/debug-completo/{numeroGuia}', [TrackingServientregaController::class, 'debugImagenCompleto'])
+    ->where('numeroGuia', '[0-9]+')
+    ->name('debug.completo');
+
+Route::get('/debug-imagen/{numeroGuia}', [TrackingServientregaController::class, 'debugImagen'])
+    ->where('numeroGuia', '[0-9]+')
+    ->name('debug.imagen');
+
 // Ruta para la creacion de una nueva guia industrial
 /*Route::middleware('auth')->group(function () {
     Route::resource('guias', GuiaEnvioController::class);
     Route::get('guias/{guia}/regenerar', [GuiaEnvioController::class, 'mostrarRegeneracion'])->name('show');
     Route::post('guias/{guia}/regenerar', [GuiaEnvioController::class, 'regenerar'])->name('crear.guia');
 });*/
+
+
+
+

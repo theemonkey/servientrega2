@@ -18,9 +18,28 @@ Route::get('/', function(){ return redirect('/consultar');})->name('consultar');
 Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGuia'])->name('guia');
 
 
+// Seguimiento imagen
+Route::get('/debug-completo/{numeroGuia}', [TrackingServientregaController::class, 'debugImagenCompleto'])
+    ->where('numeroGuia', '[0-9]+')
+    ->name('debug.completo');
+
+Route::get('/debug-imagen/{numeroGuia}', [TrackingServientregaController::class, 'debugImagen'])
+    ->where('numeroGuia', '[0-9]+')
+    ->name('debug.imagen');
+
 // Ruta para la creacion de una nueva guia industrial
 /*Route::middleware('auth')->group(function () {
     Route::resource('guias', GuiaEnvioController::class);
     Route::get('guias/{guia}/regenerar', [GuiaEnvioController::class, 'mostrarRegeneracion'])->name('show');
     Route::post('guias/{guia}/regenerar', [GuiaEnvioController::class, 'regenerar'])->name('crear.guia');
 });*/
+
+// Rutas de diagnóstico y testing
+Route::get('/diagnostico-sistema', [TrackingServientregaController::class, 'diagnosticoSistema']);
+Route::get('/test-conversion-simple/{numeroGuia}', [TrackingServientregaController::class, 'testConversionSimple']);
+Route::get('/debug-imagen/{numeroGuia}', [TrackingServientregaController::class, 'debugImagen']);
+Route::get('/debug-imagen-completo/{numeroGuia}', [TrackingServientregaController::class, 'debugImagenCompleto']);
+Route::get('/reprocesar-imagen/{numeroGuia}', [TrackingServientregaController::class, 'reprocesarImagen']);
+
+
+

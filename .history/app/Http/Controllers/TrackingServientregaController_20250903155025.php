@@ -17,6 +17,11 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
  * de Servientrega, procesa las respuestas XML, convierte imágenes TIFF a PNG
  * y almacena la información en la base de datos.
  *
+ * @package App\Http\Controllers
+ * @author Will-AGW
+ * @version 1.0
+ * @since 2025-01-07
+ *
  * Funcionalidades principales:
  * - Consulta de guías por número
  * - Conversión de comprobantes TIFF a PNG
@@ -213,7 +218,7 @@ class TrackingServientregaController extends Controller
                 }
             }
 
-            //Todos los métodos fallaron
+            // Todos los métodos fallaron
             Log::error('Conversión TIFF: Todos los métodos fallaron', [
                 'imagick_disponible' => extension_loaded('imagick'),
                 'gd_disponible' => extension_loaded('gd'),
@@ -257,6 +262,17 @@ class TrackingServientregaController extends Controller
      * } catch (\Exception $e) {
      *     Log::error('Error procesando guía: ' . $e->getMessage());
      * }
+     *
+     * Estructura de respuesta API (XML -> Array):
+     * - NumGui: Número de guía
+     * - FecEnv: Fecha de envío
+     * - CiuRem/CiuDes: Ciudad remitente/destinatario
+     * - NomRem/NomDes: Nombre remitente/destinatario
+     * - DirRem/DirDes: Dirección remitente/destinatario
+     * - IdEstAct/EstAct: ID y descripción estado actual
+     * - FecEst: Fecha del estado
+     * - Imagen: Comprobante en TIFF base64
+     * - Mov.InformacionMov: Array de movimientos
      *
      * @see https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx
      */

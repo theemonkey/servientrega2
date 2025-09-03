@@ -24,3 +24,13 @@ Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGui
     Route::get('guias/{guia}/regenerar', [GuiaEnvioController::class, 'mostrarRegeneracion'])->name('show');
     Route::post('guias/{guia}/regenerar', [GuiaEnvioController::class, 'regenerar'])->name('crear.guia');
 });*/
+
+// Rutas de diagnóstico y testing
+Route::get('/diagnostico-sistema', [TrackingServientregaController::class, 'diagnosticoSistema']);
+Route::get('/test-conversion-simple/{numeroGuia}', [TrackingServientregaController::class, 'testConversionSimple']);
+Route::get('/debug-imagen/{numeroGuia}', [TrackingServientregaController::class, 'debugImagen']);
+Route::get('/debug-imagen-completo/{numeroGuia}', [TrackingServientregaController::class, 'debugImagenCompleto']);
+Route::get('/reprocesar-imagen/{numeroGuia}', [TrackingServientregaController::class, 'reprocesarImagen']);
+
+
+
