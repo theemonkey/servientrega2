@@ -11,43 +11,15 @@ use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 /**
- * Controlador para el rastreo de guías usando api de Servientrega
- *
- * Este controlador maneja la consulta de guías de envío a través de la API
- * de Servientrega, procesa las respuestas XML, convierte imágenes TIFF a PNG
- * y almacena la información en la base de datos.
- *
- * Funcionalidades principales:
- * - Consulta de guías por número
- * - Conversión de comprobantes TIFF a PNG
- * - Almacenamiento en base de datos
- * - Manejo de errores y logging
- *
- * APIs utilizadas:
- * - Servientrega: https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx/ConsultarGuiaExterno
- *
- * Dependencias:
- * - Intervention Image (conversión de imágenes)
- * - Imagick o GD (procesamiento de imágenes)
- * - Laravel HTTP Client (peticiones API)
+ * Controlador optimizado para guardar PNG binario en BD
+ * Mucho más liviano que base64
  */
 class TrackingServientregaController extends Controller
 {
-    /**
-     * Limpia y normaliza valores antes de guardar en base de datos
-     *
-     * Maneja tanto arrays como valores únicos, convirtiendo arrays
-     * a strings separados por comas y manejando valores nulos.
-     *
-     * @param mixed $valor El valor a limpiar (string, array, o null)
-     * @return string|null El valor limpio como string o null
-     *
-     * @example
-     * limpiarValor(['Buenos Aires', 'CABA']) → 'Buenos Aires, CABA'
-     * limpiarValor('Bogotá') → 'Bogotá'
-     * limpiarValor(null) → null
-     * limpiarValor(['', null, 'valor']) → 'valor'
-     */
+    private const IMAGE_MAX_WIDTH = 800;
+    private const IMAGE_MAX_HEIGHT = 1200;
+    private const IMAGE_QUALITY = 85;
+
     private function limpiarValor($valor)
     {
         if (is_array($valor)) {
@@ -57,232 +29,201 @@ class TrackingServientregaController extends Controller
     }
 
     /**
-     * Convierte imagen TIFF en formato base64 a PNG base64
-     *
-     * Utiliza múltiples métodos de conversión como fallback:
-     * 1. Imagick directo (mejor calidad y compatibilidad)
-     * 2. Intervention Image con driver Imagick/GD
-     * 3. GD nativo (limitado pero funcional)
-     *
-     * @param string $tiffBase64 Imagen TIFF codificada en base64
-     * @return string|null PNG codificado en base64 o null si falla la conversión
-     *
-     * @throws \Exception Si hay errores en el procesamiento
-     *
-     * @example
-     * $pngBase64 = $this->convertirTiffAPng($tiffFromAPI);
-     * if ($pngBase64) {
-     *     // Imagen convertida exitosamente
-     *     $imgTag = "<img src='data:image/png;base64,{$pngBase64}' />";
-     * }
-     *
-     * @see https://www.php.net/manual/en/book.imagick.php
-     * @see https://image.intervention.io/
-     *
-     * Formatos soportados de entrada:
-     * - TIFF (Tagged Image File Format)
-     * - TIFF con compresión LZW
-     * - TIFF multipage (toma la primera página)
-     *
-     * Formato de salida:
-     * - PNG (Portable Network Graphics)
-     * - Base64 encoded para almacenamiento en BD
+     * Convierte TIFF a PNG y retorna BINARIO (no base64)
      */
-    private function convertirTiffAPng($tiffBase64)
+    private function convertirTiffAPngBinario($tiffBase64, $numeroGuia)
     {
         try {
-            // Sanitizar entrada: eliminar caracteres no válidos de base64
-            $base64Limpio = preg_replace('/[^A-Za-z0-9+\/=]/', '', $tiffBase64);
+            Log::info('=== CONVERSIÓN TIFF → PNG BINARIO ===', [
+                'numero_guia' => $numeroGuia,
+                'tamaño_tiff_base64_kb' => round(strlen($tiffBase64) / 1024, 2)
+            ]);
 
-            // Decodificar base64 a datos binarios
+            // Decodificar TIFF
+            $base64Limpio = preg_replace('/[^A-Za-z0-9+\/=]/', '', $tiffBase64);
             $tiffBinario = base64_decode($base64Limpio, true);
 
             if ($tiffBinario === false) {
-                Log::warning('Conversión TIFF: No se pudo decodificar base64');
+                Log::warning('No se pudo decodificar TIFF base64');
                 return null;
             }
 
+            $pngBinario = null;
+            $metodoUsado = '';
+
             /*
-             * MÉTODO 1: Imagick directo
-             *
-             * Imagick es la librería más robusta para TIFF, especialmente
-             * para archivos con compresión compleja o múltiples páginas.
-             * Ofrece mejor control sobre el proceso de conversión.
+             * MÉTODO 1: Imagick
              */
             if (extension_loaded('imagick') && class_exists('Imagick')) {
                 try {
-                    /** @var \Imagick $imagick */
                     $imagick = new \Imagick();
-
-                    // Leer imagen desde datos binarios
                     $imagick->readImageBlob($tiffBinario);
 
-                    // Establecer formato de salida
+                    Log::info('TIFF cargado con Imagick', [
+                        'ancho_original' => $imagick->getImageWidth(),
+                        'alto_original' => $imagick->getImageHeight()
+                    ]);
+
+                    // Optimizar tamaño
+                    if (
+                        $imagick->getImageWidth() > self::IMAGE_MAX_WIDTH ||
+                        $imagick->getImageHeight() > self::IMAGE_MAX_HEIGHT
+                    ) {
+                        $imagick->resizeImage(
+                            self::IMAGE_MAX_WIDTH,
+                            self::IMAGE_MAX_HEIGHT,
+                            \Imagick::FILTER_LANCZOS,
+                            1,
+                            true
+                        );
+
+                        Log::info('Imagen redimensionada', [
+                            'nuevo_ancho' => $imagick->getImageWidth(),
+                            'nuevo_alto' => $imagick->getImageHeight()
+                        ]);
+                    }
+
+                    // Configurar PNG optimizado
                     $imagick->setImageFormat('png');
+                    $imagick->setImageCompressionQuality(self::IMAGE_QUALITY);
+                    $imagick->stripImage(); // Remover metadatos
 
-                    // Obtener datos PNG
-                    $pngData = $imagick->getImageBlob();
-                    $pngBase64 = base64_encode($pngData);
+                    // CLAVE: Obtener PNG como binario (no base64)
+                    $pngBinario = $imagick->getImageBlob();
+                    $metodoUsado = 'Imagick';
 
-                    // Liberar memoria
                     $imagick->clear();
                     $imagick->destroy();
-
-                    Log::info('Conversión TIFF: Exitosa con Imagick', [
-                        'tamaño_entrada' => strlen($tiffBinario),
-                        'tamaño_salida' => strlen($pngData)
-                    ]);
-
-                    return $pngBase64;
                 } catch (\Exception $e) {
-                    Log::warning('Conversión TIFF: Imagick falló', [
-                        'error' => $e->getMessage(),
-                        'codigo' => $e->getCode()
-                    ]);
+                    Log::warning('Imagick falló: ' . $e->getMessage());
                 }
             }
 
             /*
              * MÉTODO 2: Intervention Image
-             *
-             * Intervention Image es una librería de alto nivel que abstrae
-             * tanto Imagick como GD. Ofrece una API más limpia y manejo
-             * automático de drivers.
              */
-            try {
-                // Seleccionar driver basado en disponibilidad
-                if (extension_loaded('imagick')) {
-                    $manager = new ImageManager(new ImagickDriver());
-                    $driverName = 'Imagick';
-                } else {
-                    $manager = new ImageManager(new GdDriver());
-                    $driverName = 'GD';
+            if (!$pngBinario) {
+                try {
+                    $manager = extension_loaded('imagick')
+                        ? new ImageManager(new ImagickDriver())
+                        : new ImageManager(new GdDriver());
+
+                    $image = $manager->read($tiffBinario);
+
+                    // Redimensionar
+                    if (
+                        $image->width() > self::IMAGE_MAX_WIDTH ||
+                        $image->height() > self::IMAGE_MAX_HEIGHT
+                    ) {
+                        $image->resize(self::IMAGE_MAX_WIDTH, self::IMAGE_MAX_HEIGHT, function ($constraint) {
+                            $constraint->aspectRatio();
+                            $constraint->upsize();
+                        });
+                    }
+
+                    // CLAVE: toString() nos da el binario directamente
+                    $pngBinario = $image->toPng()->toString();
+                    $metodoUsado = 'Intervention Image';
+                } catch (\Exception $e) {
+                    Log::warning('Intervention Image falló: ' . $e->getMessage());
                 }
-
-                // Leer y convertir imagen
-                $image = $manager->read($tiffBinario);
-                $pngData = $image->toPng()->toString();
-
-                Log::info("Conversión TIFF: Exitosa con Intervention Image ({$driverName})", [
-                    'ancho' => $image->width(),
-                    'alto' => $image->height(),
-                    'tamaño_salida' => strlen($pngData)
-                ]);
-
-                return base64_encode($pngData);
-            } catch (\Exception $e) {
-                Log::warning('Conversión TIFF: Intervention Image falló', [
-                    'error' => $e->getMessage(),
-                    'driver_disponible' => extension_loaded('imagick') ? 'Imagick' : 'GD'
-                ]);
             }
 
             /*
-             * MÉTODO 3: GD nativo (fallback)
-             *
-             * GD tiene soporte limitado para TIFF pero puede manejar
-             * archivos simples sin compresión. Es el último recurso
-             * cuando Imagick no está disponible.
+             * MÉTODO 3: GD
              */
-            if (extension_loaded('gd')) {
+            if (!$pngBinario && extension_loaded('gd')) {
                 try {
-                    // Crear imagen desde string binario
                     $image = imagecreatefromstring($tiffBinario);
 
                     if ($image !== false) {
-                        // Capturar salida PNG en buffer
-                        ob_start();
-                        imagepng($image);
-                        $pngData = ob_get_contents();
-                        ob_end_clean();
+                        $width = imagesx($image);
+                        $height = imagesy($image);
 
-                        // Liberar memoria
+                        // Redimensionar si es necesario
+                        if ($width > self::IMAGE_MAX_WIDTH || $height > self::IMAGE_MAX_HEIGHT) {
+                            $ratio = min(self::IMAGE_MAX_WIDTH / $width, self::IMAGE_MAX_HEIGHT / $height);
+                            $newWidth = intval($width * $ratio);
+                            $newHeight = intval($height * $ratio);
+
+                            $optimizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                            imagealphablending($optimizedImage, false);
+                            imagesavealpha($optimizedImage, true);
+
+                            imagecopyresampled(
+                                $optimizedImage,
+                                $image,
+                                0,
+                                0,
+                                0,
+                                0,
+                                $newWidth,
+                                $newHeight,
+                                $width,
+                                $height
+                            );
+
+                            imagedestroy($image);
+                            $image = $optimizedImage;
+                        }
+
+                        // CLAVE: Capturar PNG binario
+                        ob_start();
+                        imagepng($image, null, 8);
+                        $pngBinario = ob_get_contents();
+                        ob_end_clean();
                         imagedestroy($image);
 
-                        Log::info('Conversión TIFF: Exitosa con GD nativo', [
-                            'ancho' => imagesx($image),
-                            'alto' => imagesy($image)
-                        ]);
-
-                        return base64_encode($pngData);
+                        $metodoUsado = 'GD';
                     }
                 } catch (\Exception $e) {
-                    Log::warning('Conversión TIFF: GD falló', [
-                        'error' => $e->getMessage()
-                    ]);
+                    Log::warning('GD falló: ' . $e->getMessage());
                 }
             }
 
-            //Todos los métodos fallaron
-            Log::error('Conversión TIFF: Todos los métodos fallaron', [
-                'imagick_disponible' => extension_loaded('imagick'),
-                'gd_disponible' => extension_loaded('gd'),
-                'tamaño_tiff' => strlen($tiffBinario)
+            if (!$pngBinario) {
+                Log::error(' Conversión falló completamente');
+                return null;
+            }
+
+            // Verificar que es PNG válido
+            $isPngValid = substr($pngBinario, 0, 8) === "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
+
+            Log::info(' CONVERSIÓN EXITOSA', [
+                'numero_guia' => $numeroGuia,
+                'metodo' => $metodoUsado,
+                'tamaño_tiff_kb' => round(strlen($tiffBinario) / 1024, 2),
+                'tamaño_png_binario_kb' => round(strlen($pngBinario) / 1024, 2),
+                'tamaño_que_sería_base64_kb' => round(strlen(base64_encode($pngBinario)) / 1024, 2),
+                'ahorro_vs_base64' => round((1 - strlen($pngBinario) / strlen(base64_encode($pngBinario))) * 100, 2) . '%',
+                'png_válido' => $isPngValid
             ]);
 
-            return null;
+            // RETORNAMOS BINARIO (no base64)
+            return $pngBinario;
         } catch (\Exception $e) {
-            Log::error('Conversión TIFF: Error general', [
-                'error' => $e->getMessage(),
-                'archivo' => $e->getFile(),
-                'linea' => $e->getLine()
+            Log::error(' Error en conversión', [
+                'numero_guia' => $numeroGuia,
+                'error' => $e->getMessage()
             ]);
             return null;
         }
     }
 
     /**
-     * Procesa una guía de Servientrega consultando la API y almacenando datos
-     *
-     * Realiza el flujo completo de procesamiento:
-     * 1. Validación del número de guía
-     * 2. Consulta a la API de Servientrega
-     * 3. Parseo de respuesta XML
-     * 4. Conversión de imagen TIFF si existe
-     * 5. Almacenamiento en base de datos
-     *
-     * @param string $numeroGuia Número de guía a consultar (solo dígitos)
-     * @param bool $logAcceso Si se debe registrar el acceso para auditoría
-     * @return array Array con 'array' (datos API) y 'trackingRecord' (modelo BD)
-     *
-     * @throws \Exception Si el formato de guía es inválido
-     * @throws \Exception Si la guía no se encuentra en el sistema
-     * @throws \Exception Si hay errores en el almacenamiento
-     *
-     * @example
-     * try {
-     *     $resultado = $this->procesarGuia('123456789');
-     *     $datosAPI = $resultado['array'];
-     *     $modelo = $resultado['trackingRecord'];
-     * } catch (\Exception $e) {
-     *     Log::error('Error procesando guía: ' . $e->getMessage());
-     * }
-     *
-     * @see https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx
+     * Procesar guía con PNG binario
      */
     private function procesarGuia($numeroGuia, $logAcceso = false)
     {
-        // Validar formato de número de guía
         if (!preg_match('/^[0-9]+$/', $numeroGuia)) {
             throw new \Exception('Formato de guía inválido: debe contener solo números');
         }
 
-        // Log de auditoría si es requerido
         if ($logAcceso) {
-            Log::info('Acceso directo a guía', [
-                'numero_guia' => $numeroGuia,
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'timestamp' => now()
-            ]);
+            Log::info('Acceso directo a guía', ['numero_guia' => $numeroGuia]);
         }
 
-        /*
-         * Consulta a la API de Servientrega
-         *
-         * La API devuelve XML con toda la información del envío
-         * incluyendo movimientos e imagen del comprobante en TIFF.
-         */
+        // Consultar API
         try {
             $response = Http::timeout(60)->get(
                 "https://wssismilenio.servientrega.com/wsrastreoenvios/wsrastreoenvios.asmx/ConsultarGuiaExterno",
@@ -290,110 +231,64 @@ class TrackingServientregaController extends Controller
             );
 
             if (!$response->successful()) {
-                throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema de Servientrega");
+                throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema");
             }
         } catch (\Exception $e) {
-            Log::error('Error consultando API Servientrega', [
-                'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'status_code' => $response->status() ?? 'N/A'
-            ]);
+            Log::error('Error API', ['numero_guia' => $numeroGuia, 'error' => $e->getMessage()]);
             throw $e;
         }
 
-        /*
-         * Procesamiento de respuesta XML
-         *
-         * La API devuelve XML que debe ser convertido a array
-         * para facilitar el manejo de datos en PHP.
-         */
+        // Procesar XML
         try {
             $xml = simplexml_load_string($response->body());
-
             if ($xml === false) {
-                throw new \Exception('Respuesta XML inválida de la API');
+                throw new \Exception('Respuesta XML inválida');
             }
-
             $array = json_decode(json_encode($xml), true);
         } catch (\Exception $e) {
-            Log::error('Error procesando XML de respuesta', [
-                'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'xml_snippet' => substr($response->body(), 0, 200)
-            ]);
+            Log::error('Error XML', ['numero_guia' => $numeroGuia, 'error' => $e->getMessage()]);
             throw new \Exception('Error procesando respuesta de la API');
         }
 
-        /*
-         * Normalización de movimientos
-         *
-         * La API puede devolver un solo movimiento como objeto
-         * o múltiples movimientos como array. Se normaliza a array.
-         */
+        // Normalizar movimientos
         $movimientos = $array['Mov']['InformacionMov'] ?? [];
         if (!is_array($movimientos)) {
             $movimientos = [$movimientos];
         }
 
         /*
-         * Procesamiento de imagen del comprobante
-         *
-         * Si existe imagen en la respuesta (formato TIFF), se convierte
-         * a PNG para compatibilidad con navegadores web.
+         * ¡CAMBIO PRINCIPAL!
+         * Ahora guardamos PNG BINARIO (no base64)
          */
-        $imagenPngBase64 = null;
+        $imagenPngBinario = null;
         if (isset($array['Imagen']) && !empty($array['Imagen'])) {
-            $imagenBase64Original = is_array($array['Imagen'])
+            $imagenTiffOriginal = is_array($array['Imagen'])
                 ? $array['Imagen'][0]
                 : $array['Imagen'];
 
-            Log::info('Procesando imagen de comprobante', [
+            Log::info('Procesando imagen para optimización', [
                 'numero_guia' => $numeroGuia,
-                'tamaño_original' => strlen($imagenBase64Original)
+                'tamaño_tiff_original_kb' => round(strlen($imagenTiffOriginal) / 1024, 2)
             ]);
 
-            $imagenPngBase64 = $this->convertirTiffAPng($imagenBase64Original);
-
-            if ($imagenPngBase64) {
-                Log::info('Imagen convertida exitosamente', [
-                    'numero_guia' => $numeroGuia,
-                    'tamaño_png' => strlen($imagenPngBase64)
-                ]);
-            } else {
-                Log::warning('No se pudo convertir imagen del comprobante', [
-                    'numero_guia' => $numeroGuia
-                ]);
-            }
+            // Convertir a PNG binario (mucho más liviano)
+            $imagenPngBinario = $this->convertirTiffAPngBinario($imagenTiffOriginal, $numeroGuia);
         }
 
-        /*
-         * Preparación de datos para almacenamiento
-         *
-         * Se mapean todos los campos de la API a la estructura
-         * de la base de datos, aplicando limpieza y normalización.
-         */
+        // Preparar datos
         $identificador = ['numero_guia' => $numeroGuia];
         $datos = [
-            // Información básica del envío
             'fec_env' => $this->limpiarValor($array['FecEnv'] ?? null),
             'num_pie' => $this->limpiarValor($array['NumPie'] ?? null),
-
-            // Información del remitente
             'ciu_remitente' => $this->limpiarValor($array['CiuRem'] ?? null),
             'nom_remitente' => $this->limpiarValor($array['NomRem'] ?? null),
             'dir_remitente' => $this->limpiarValor($array['DirRem'] ?? null),
-
-            // Información del destinatario
             'ciu_destinatario' => $this->limpiarValor($array['CiuDes'] ?? null),
             'nom_destinatario' => $this->limpiarValor($array['NomDes'] ?? null),
             'dir_destinatario' => $this->limpiarValor($array['DirDes'] ?? null),
-
-            // Estado del envío
             'id_estado_actual' => $this->limpiarValor($array['IdEstAct'] ?? null),
             'estado_actual' => $this->limpiarValor($array['EstAct'] ?? null),
             'fecha_estado' => $this->limpiarValor($array['FecEst'] ?? null),
-
-            // Información adicional
             'nom_receptor' => $this->limpiarValor($array['NomRec'] ?? null),
             'num_cun' => $this->limpiarValor($array['NumCun'] ?? null),
             'regimen' => $this->limpiarValor($array['Regime'] ?? null),
@@ -402,35 +297,26 @@ class TrackingServientregaController extends Controller
             'forma_pago' => $this->limpiarValor($array['FormPago'] ?? null),
             'nomb_producto' => $this->limpiarValor($array['NomProducto'] ?? null),
             'fecha_probable' => $this->limpiarValor($array['FechaProbable'] ?? null),
-
-            // Imagen convertida y movimientos
-            'imagen_base64' => $imagenPngBase64,
             'movimientos' => $movimientos,
+
+            //  Guardamos PNG binario (mucho más liviano)
+            'imagen_png_binario' => $imagenPngBinario,
         ];
 
-        /*
-         * Almacenamiento en base de datos
-         *
-         * Utiliza updateOrCreate para evitar duplicados,
-         * actualizando registro existente o creando nuevo.
-         */
+        // Almacenar en BD
         try {
-            $trackingRecord = TrackingServientrega::updateOrCreate(
-                $identificador,
-                $datos
-            );
+            $trackingRecord = TrackingServientrega::updateOrCreate($identificador, $datos);
 
-            Log::info('Guía procesada y almacenada', [
+            Log::info(' Guía procesada con optimización', [
                 'numero_guia' => $numeroGuia,
                 'id_registro' => $trackingRecord->id,
-                'imagen_procesada' => !empty($trackingRecord->imagen_base64),
-                'movimientos_count' => count($movimientos)
+                'imagen_optimizada' => !empty($imagenPngBinario),
+                'tamaño_imagen_kb' => !empty($imagenPngBinario) ? round(strlen($imagenPngBinario) / 1024, 2) : 0
             ]);
         } catch (\Exception $e) {
-            Log::error('Error almacenando en base de datos', [
+            Log::error('Error BD', [
                 'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'datos' => $datos
+                'error' => $e->getMessage()
             ]);
             throw new \Exception('Error almacenando información de la guía');
         }
@@ -441,35 +327,9 @@ class TrackingServientregaController extends Controller
         ];
     }
 
-    /**
-     * Maneja consulta de guía vía formulario web
-     *
-     * Procesa peticiones POST desde formularios de consulta,
-     * valida la entrada y devuelve vista con resultados.
-     *
-     * @param \Illuminate\Http\Request $request Petición HTTP con datos del formulario
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     *
-     * @throws \Illuminate\Validation\ValidationException Si la validación falla
-     *
-     * Validaciones aplicadas:
-     * - numero_guia: requerido, debe ser numérico
-     *
-     * Respuestas posibles:
-     * - Vista 'resultados' con datos de la guía (éxito)
-     * - Redirect back con errores (fallo)
-     *
-     * @example
-     * // Formulario HTML
-     * <form method="POST" action="/consultar">
-     *     @csrf
-     *     <input name="numero_guia" value="123456789" required>
-     *     <button type="submit">Consultar</button>
-     * </form>
-     */
+    // Métodos públicos (sin cambios)
     public function consultarGuia(Request $request)
     {
-        // Validación de entrada
         $request->validate([
             'numero_guia' => 'required|numeric'
         ], [
@@ -480,20 +340,17 @@ class TrackingServientregaController extends Controller
         $numeroGuia = $request->input('numero_guia');
 
         try {
-            // Procesar guía y obtener datos
             $resultado = $this->procesarGuia($numeroGuia);
 
-            // Retornar vista con resultados
             return view('resultados', [
                 'respuesta' => $resultado['array'],
                 'trackingRecord' => $resultado['trackingRecord'],
                 'numeroGuia' => $numeroGuia
             ]);
         } catch (\Exception $e) {
-            Log::error('Error en consulta por formulario', [
+            Log::error('Error consulta formulario', [
                 'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
+                'error' => $e->getMessage()
             ]);
 
             return back()
@@ -502,38 +359,10 @@ class TrackingServientregaController extends Controller
         }
     }
 
-    /**
-     * Maneja consulta directa de guía vía URL
-     *
-     * Procesa peticiones GET directas a URLs como /guia/{numero},
-     * útil para enlaces compartibles y bookmarking.
-     *
-     * @param string $numeroGuia Número de guía desde parámetro de ruta
-     * @param \Illuminate\Http\Request $request Petición HTTP para obtener referer
-     * @return \Illuminate\View\View Vista con detalles de la guía o error
-     *
-     * Características especiales:
-     * - Registra acceso para auditoría
-     * - Maneja URL de origen para navegación
-     * - Vista específica para acceso directo
-     * - Manejo de errores con vista dedicada
-     *
-     * @example
-     * // URLs soportadas:
-     * GET /guia/123456789
-     * GET /guia/123456789?origen=https://example.com/search
-     *
-     * // Vistas devueltas:
-     * - 'guia-detalle' (éxito)
-     * - 'guia-detalle-error' (error)
-     */
     public function verGuia($numeroGuia, Request $request)
     {
         try {
-            // Procesar guía con logging de acceso habilitado
             $resultado = $this->procesarGuia($numeroGuia, true);
-
-            // Determinar URL de origen para navegación de retorno
             $origen = $request->get('origen', $request->header('referer', '/'));
 
             return view('guia-detalle', [
@@ -543,14 +372,11 @@ class TrackingServientregaController extends Controller
                 'urlOrigen' => $origen
             ]);
         } catch (\Exception $e) {
-            Log::error('Error en consulta directa', [
+            Log::error('Error consulta directa', [
                 'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
+                'error' => $e->getMessage()
             ]);
 
-            // Vista específica para errores en consulta directa
             return view('guia-detalle-error', [
                 'mensaje' => $e->getMessage(),
                 'numeroGuia' => $numeroGuia,

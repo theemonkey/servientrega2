@@ -3,7 +3,7 @@
  * ===============================================
  * VISTA DE RESULTADOS DE RASTREO DE GUÍAS CON FORMULARIO
  * ===============================================
- * 
+ *
  * Descripción: Vista principal para mostrar información detallada de guias
  * de rastreo con pestañas para detalles e historial, incluyendo mapas interactivos
  * Funcionalidades:
@@ -21,7 +21,7 @@
 @section('tituloPagina', 'Resultado de la Guía')
 
 @section('contenido')
-    {{-- 
+    {{--
         ===============================================
         CONTENEDOR PRINCIPAL CON PESTAÑAS
         ===============================================
@@ -33,14 +33,14 @@
             <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
                 {{-- Pestaña Detalles (activa por defecto) --}}
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="detalle-tab" data-bs-toggle="tab" data-bs-target="#detalle" 
+                    <button class="nav-link active" id="detalle-tab" data-bs-toggle="tab" data-bs-target="#detalle"
                             type="button" role="tab" aria-controls="detalle" aria-selected="true">
                         <i class="fas fa-info-circle me-2"></i>Detalles
                     </button>
                 </li>
                 {{-- Pestaña Historial --}}
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" 
+                    <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial"
                             type="button" role="tab" aria-controls="historial" aria-selected="false">
                         <i class="fas fa-history me-2"></i>Historial
                     </button>
@@ -50,15 +50,15 @@
 
         {{-- Contenido de las pestañas --}}
         <div class="card-body tab-content" id="myTabContent">
-            
-            {{-- 
+
+            {{--
                 ===============================================
                 PESTAÑA DETALLES
                 ===============================================
                 Muestra información completa del envío con mapa interactivo
             --}}
             <div class="tab-pane fade show active" id="detalle" role="tabpanel" aria-labelledby="detalle-tab">
-                
+
                 {{-- Verificación de existencia de datos de movimientos --}}
                 @if(isset($respuesta['Mov']))
                     @php
@@ -68,16 +68,16 @@
                          * =================================
                          * Normaliza y procesa los datos recibidos de la API
                          */
-                        
+
                         /**
                          * Normalización de movimientos
                          * Maneja tanto arrays como valores únicos
                          */
-                        $movimientos = is_array($respuesta['Mov']['InformacionMov']) 
-                            ? $respuesta['Mov']['InformacionMov'] 
+                        $movimientos = is_array($respuesta['Mov']['InformacionMov'])
+                            ? $respuesta['Mov']['InformacionMov']
                             : [$respuesta['Mov']['InformacionMov']];
                         $ultimoMovimiento = end($movimientos);
-                        
+
                         /**
                          * Mapeo de estados del envío
                          * Cada ID corresponde a un estado específico del proceso logístico
@@ -89,21 +89,21 @@
                             '4' => 'ENTREGADO A REMITENTE',  // Devuelto al remitente
                             '5' => 'SINIESTRADO'             // Problema/pérdida del envío
                         ];
-                        
+
                         /**
                          * Obtención del estado actual
                          * Maneja arrays y valores únicos de forma segura
                          */
-                        $idEstadoActual = is_array($respuesta['IdEstAct'] ?? null) 
-                            ? implode(', ', $respuesta['IdEstAct']) 
+                        $idEstadoActual = is_array($respuesta['IdEstAct'] ?? null)
+                            ? implode(', ', $respuesta['IdEstAct'])
                             : ($respuesta['IdEstAct'] ?? null);
-                        
+
                         /**
                          * Descripción textual del estado
                          * Usa el mapeo definido o fallback a datos originales
                          */
                         $estadoActualTexto = $estadosMap[$idEstadoActual] ?? ($respuesta['EstAct'] ?? 'No disponible');
-                        
+
                         /**
                          * Sistema de colores para badges según estado
                          * Cada estado tiene un color específico para UX
@@ -115,20 +115,20 @@
                             '4' => 'badge-devolucion',    // Naranja - devolución
                             '5' => 'badge-siniestrado'    // Rojo - problema
                         ];
-                        
+
                         /**
                          * Determinar color del badge
                          * Fallback a 'procesamiento' si no hay estado definido
                          */
                         $badgeColor = $badgeColorMap[$idEstadoActual] ?? 'badge-procesamiento';
-                        
+
                         /**
                          * Procesamiento de PQR (Peticiones, Quejas y Reclamos)
                          * Valida y procesa el número CUN para mostrar observaciones
                          */
                         $numCun = $respuesta['NumCun'] ?? null;
                         $pqrTexto = 'Sin observaciones'; // Valor por defecto
-                        
+
                         if (!empty($numCun)) {
                             if (is_array($numCun)) {
                                 $numCunValue = implode(', ', $numCun);
@@ -143,7 +143,7 @@
                         }
                     @endphp
 
-                    {{-- 
+                    {{--
                         =====================================
                         HEADER CON INFORMACIÓN PRINCIPAL
                         =====================================
@@ -152,7 +152,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             {{-- Número de guía prominente --}}
-                            <h5 class="card-title mb-0">Número de guía: 
+                            <h5 class="card-title mb-0">Número de guía:
                                 {{ is_array($respuesta['NumGui'] ?? null) ? implode(', ', $respuesta['NumGui']) : ($respuesta['NumGui'] ?? 'No disponible') }}
                             </h5>
                         </div>
@@ -165,20 +165,20 @@
                         </div>
                     </div>
 
-                    {{-- 
+                    {{--
                         ==================================
                         INFORMACIÓN EN DOS COLUMNAS
                         ==================================
                         Layout responsivo con información del remitente y destinatario
                     --}}
                     <div class="row">
-                        
-                        {{-- 
+
+                        {{--
                             COLUMNA IZQUIERDA: INFORMACIÓN DEL REMITENTE
                         --}}
                         <div class="col-md-6">
                             <h5 class="text-secondary mb-3">Información de Origen (Remitente)</h5>
-                            
+
                             {{-- Nombre del remitente --}}
                             <div class="info-item">
                                 <div class="info-icon">
@@ -246,12 +246,12 @@
                             </div>
                         </div>
 
-                        {{-- 
+                        {{--
                             COLUMNA DERECHA: INFORMACIÓN DEL DESTINATARIO
                         --}}
                         <div class="col-md-6">
                             <h5 class="text-secondary mb-3">Información de Destino (Destinatario)</h5>
-                            
+
                             {{-- Nombre del destinatario --}}
                             <div class="info-item">
                                 <div class="info-icon">
@@ -325,14 +325,14 @@
                     {{-- Separador visual --}}
                     <hr>
 
-                    {{-- 
+                    {{--
                         =============================
                         INFORMACIÓN ADICIONAL
                         =============================
                         Datos complementarios del envío
                     --}}
                     <h5 class="text-secondary mb-3">Información extra</h5>
-                    
+
                     {{-- Receptor que recibió el paquete --}}
                     <div class="info-item">
                         <div class="info-icon">
@@ -388,7 +388,7 @@
                         </div>
                     </div>
 
-                    {{-- 
+                    {{--
                         ==========================
                         BOTONES DE ACCIÓN
                         ==========================
@@ -405,14 +405,14 @@
                         </button>
                     </div>
 
-                    {{-- 
+                    {{--
                         ===============================================
                         CONTENEDOR DEL MAPA INTERACTIVO - DETALLES
                         ===============================================
                         Mapa Leaflet con indicadores de estado y disclaimer externo
                     --}}
                     <div id="mapContainer" class="map-container mt-4" style="display: none;">
-                        
+
                         {{-- Header del mapa con indicadores de estado --}}
                         <div class="map-header">
                             {{-- Indicadores visuales del estado del envío --}}
@@ -437,7 +437,7 @@
                             </p>
                         </div>
 
-                        {{-- 
+                        {{--
                             Contenedor del mapa sin disclaimer interno
                             Solo esquinas superiores redondeadas para continuidad visual
                         --}}
@@ -446,7 +446,7 @@
                             <div id="map" style="height: 100%; width: 100%;"></div>
                         </div>
 
-                        {{-- 
+                        {{--
                             Disclaimer externo debajo del mapa
                             Información legal sobre precisión de coordenadas
                         --}}
@@ -454,8 +454,8 @@
                             <div class="disclaimer-content">
                                 <i class="fas fa-info-circle me-2 text-muted" aria-hidden="true"></i>
                                 <small class="text-muted">
-                                    Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas. 
-                                    Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no 
+                                    Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas.
+                                    Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no
                                     representar la ubicación exacta del envío.
                                 </small>
                             </div>
@@ -471,7 +471,7 @@
                 @endif
             </div>
 
-            {{-- 
+            {{--
                 ========================
                 PESTAÑA HISTORIAL
                 ========================
@@ -479,7 +479,7 @@
             --}}
             <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
                 <h5 class="mb-3">Historial de Movimientos</h5>
-                
+
                 {{-- Verificación de existencia de movimientos --}}
                 @if(isset($respuesta['Mov']))
                     @php
@@ -487,14 +487,14 @@
                          * Re-procesamiento de movimientos para la pestaña historial
                          * Mantiene la misma lógica de normalización
                          */
-                        $movimientos = is_array($respuesta['Mov']['InformacionMov']) 
-                            ? $respuesta['Mov']['InformacionMov'] 
+                        $movimientos = is_array($respuesta['Mov']['InformacionMov'])
+                            ? $respuesta['Mov']['InformacionMov']
                             : [$respuesta['Mov']['InformacionMov']];
                     @endphp
-                    
+
                     {{-- Verificación de que existan movimientos para mostrar --}}
                     @if(count($movimientos) > 0)
-                        {{-- 
+                        {{--
                             Lista de movimientos con diseño de timeline
                             Cada item representa un evento en la historia del envío
                         --}}
@@ -508,30 +508,30 @@
                                             <i class="fas fa-shipping-fast text-primary me-2"></i>
                                             {{ is_array($movimiento['NomMov'] ?? null) ? implode(', ', $movimiento['NomMov']) : ($movimiento['NomMov'] ?? 'Sin descripción') }}
                                         </div>
-                                        
+
                                         {{-- Ubicación de origen del movimiento --}}
                                         <div class="mt-2">
                                             <i class="fas fa-map-marker-alt text-danger me-2"></i>
                                             <strong>Origen:</strong> {{ is_array($movimiento['OriMov'] ?? null) ? implode(', ', $movimiento['OriMov']) : ($movimiento['OriMov'] ?? 'N/A') }}
                                         </div>
-                                        
+
                                         {{-- Ubicación de destino del movimiento --}}
                                         <div>
                                             <i class="fas fa-map-marker-alt text-success me-2"></i>
                                             <strong>Destino:</strong> {{ is_array($movimiento['DesMov'] ?? null) ? implode(', ', $movimiento['DesMov']) : ($movimiento['DesMov'] ?? 'N/A') }}
                                         </div>
-                                        
+
                                         {{-- Fecha del movimiento --}}
                                         <div class="mt-2">
                                             <i class="fas fa-calendar-alt text-info me-2"></i>
                                             <strong>Fecha:</strong> {{ is_array($movimiento['FecMov'] ?? null) ? implode(', ', $movimiento['FecMov']) : ($movimiento['FecMov'] ?? 'N/A') }}
                                         </div>
-                                        
+
                                         {{-- Tipo de movimiento con lógica condicional --}}
                                         @if(isset($movimiento['TipoMov']))
                                             <div class="mt-1">
                                                 <i class="fas fa-tag text-secondary me-2"></i>
-                                                <strong>Tipo:</strong> 
+                                                <strong>Tipo:</strong>
                                                 @php
                                                     /**
                                                      * Normalización del tipo de movimiento
@@ -539,7 +539,7 @@
                                                      */
                                                     $tipoMov = is_array($movimiento['TipoMov']) ? $movimiento['TipoMov'][0] : $movimiento['TipoMov'];
                                                 @endphp
-                                                
+
                                                 {{-- Clasificación de tipos de movimiento --}}
                                                 @if($tipoMov == 1)
                                                     <span class="tipo-devolucion">Devolución</span>
@@ -553,7 +553,7 @@
                                             </div>
                                         @endif
                                     </div>
-                                    
+
                                     {{-- ID del proceso en badge --}}
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="badge bg-secondary mb-1">
@@ -564,7 +564,7 @@
                             @endforeach
                         </ul>
 
-                        {{-- 
+                        {{--
                             =================================
                             BOTONES DE ACCIÓN - HISTORIAL
                             =================================
@@ -581,14 +581,14 @@
                             </button>
                         </div>
 
-                        {{-- 
+                        {{--
                             ===============================================
                             CONTENEDOR DEL MAPA INTERACTIVO - HISTORIAL
                             ===============================================
                             Segundo mapa Leaflet para la pestaña historial
                         --}}
                         <div id="mapContainerHistorial" class="map-container mt-4" style="display: none;">
-                            
+
                             {{-- Header del mapa con indicadores de estado (duplicado) --}}
                             <div class="map-header">
                                 {{-- Indicadores visuales del estado del envío --}}
@@ -613,7 +613,7 @@
                                 </p>
                             </div>
 
-                            {{-- 
+                            {{--
                                 Contenedor del mapa sin disclaimer interno
                                 Solo esquinas superiores redondeadas para continuidad visual
                             --}}
@@ -622,7 +622,7 @@
                                 <div id="mapHistorial" style="height: 100%; width: 100%;"></div>
                             </div>
 
-                            {{-- 
+                            {{--
                                 Disclaimer externo debajo del mapa
                                 Información legal sobre precisión de coordenadas (duplicado)
                             --}}
@@ -630,8 +630,8 @@
                                 <div class="disclaimer-content">
                                     <i class="fas fa-info-circle me-2 text-muted" aria-hidden="true"></i>
                                     <small class="text-muted">
-                                        Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas. 
-                                        Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no 
+                                        Este mapa utiliza datos de OpenStreetMap para proporcionar coordenadas y una ubicación aproximadas.
+                                        Ten en cuenta que, por su naturaleza, las coordenadas son una referencia general y pueden no
                                         representar la ubicación exacta del envío.
                                     </small>
                                 </div>
@@ -645,7 +645,7 @@
                             No hay movimientos registrados para esta guía.
                         </div>
                     @endif
-                    
+
                 {{-- Mensaje si no hay datos de movimientos --}}
                 @else
                     <div class="alert alert-warning">
@@ -656,7 +656,7 @@
             </div>
         </div>
 
-        {{-- 
+        {{--
             ==========================================
             MODAL PARA VISUALIZACIÓN DE COMPROBANTES
             ==========================================
@@ -666,52 +666,75 @@
         <div class="modal fade" id="comprobanteModal" tabindex="-1" aria-labelledby="comprobanteModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    
+
                     {{-- Header del modal con título dinámico --}}
                     <div class="modal-header">
                         <h5 class="modal-title" id="comprobanteModalLabel">
-                            <i class="fas fa-receipt me-2"></i>Comprobante de Guía: 
+                            <i class="fas fa-receipt me-2"></i>Comprobante de Guía:
                             {{ is_array($respuesta['NumGui'] ?? null) ? implode(', ', $respuesta['NumGui']) : ($respuesta['NumGui'] ?? 'N/A') }}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    
+
                     {{-- Cuerpo del modal con lógica condicional para diferentes estados --}}
                     <div class="modal-body text-center">
-                        
-                        {{-- 
-                            CASO 1: Imagen procesada en base64 (PNG)
+
+                        {{--
+                            CASO 1: Imagen procesada como PNG binario
                             Imagen lista para mostrar y descargar
                         --}}
-                        @if(isset($trackingRecord) && $trackingRecord->imagen_base64)
+                        @if(isset($trackingRecord) && $trackingRecord->tieneImagen())
                             {{-- Contenedor de la imagen --}}
                             <div class="mb-3">
-                                <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64 }}" 
-                                    alt="Comprobante de guía" 
+                                <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                    alt="Comprobante de guía{{ $numeroGuia }}"
                                     class="img-fluid border rounded shadow-sm"
-                                    style="max-width: 100%; height: auto; max-height: 80vh;">
+                                    style="max-width: 100%; height: auto; max-height: 80vh;"
+                                    loading="lazy">
                             </div>
                             {{-- Botón de descarga con nombre dinámico --}}
-                            <div class="mt-3">
-                                <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64 }}" 
-                                download="comprobante-{{ is_array($respuesta['NumGui'] ?? null) ? ($respuesta['NumGui'][0] ?? 'guia') : ($respuesta['NumGui'] ?? 'guia') }}.png"
-                                class="btn btn-outline-primary">
+                            <div class="d-flex justify-content-center gap-3 mt-3">
+                                <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                download="comprobante-{{ $numeroGuia }}.png"
+                                class="btn btn-custom-modal d-flex align-items-center">
                                     <i class="fas fa-download me-2"></i>Descargar Comprobante
                                 </a>
+                                {{-- Boton cerrar --}}
+                                <button type="button"
+                                        class="btn btn-custom-modal d-flex align-items-center"
+                                        data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cerrar
+                                </button>
                             </div>
-                        
-                        {{-- 
+                        {{--
                             CASO 2: Imagen disponible pero no procesada (TIFF)
                             Imagen existe pero no se puede mostrar en navegador
                         --}}
-                        @elseif(isset($respuesta['Imagen']) && !empty($respuesta['Imagen']))
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                La imagen está disponible pero no se puede mostrar en el navegador (formato TIFF). 
-                                <br>Se está procesando para conversión.
+                        @elseif(isset($trackingRecord) && $trackingRecord->imagen_png_binario)
+                            <div class="mb-3">
+                                <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                    alt="Comprobante de guía {{ $numeroGuia }}"
+                                    class="img-fluid border rounded shadow-sm"
+                                    style="max-width: 100%; height: auto; max-height: 80vh;"
+                                    loading="lazy">
                             </div>
-                        
-                        {{-- 
+
+                            <div class="d-flex justify-content-center gap-3 mt-3">
+                                <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                download="comprobante-{{ $numeroGuia }}.png"
+                                class="btn btn-custom-modal d-flex align-items-center">
+                                    <i class="fas fa-download me-2"></i>Descargar Comprobante
+                                </a>
+
+                                {{-- Botón Cerrar --}}
+                                <button type="button"
+                                        class="btn btn-custom-modal d-flex align-items-center"
+                                        data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cerrar
+                                </button>
+                            </div>
+
+                        {{--
                             CASO 3: Sin comprobante disponible
                             No hay imagen asociada al envío
                         --}}
@@ -722,19 +745,12 @@
                             </div>
                         @endif
                     </div>
-                    
-                    {{-- Footer del modal con botón de cierre --}}
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Cerrar
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- 
+    {{--
         ======================================
         CONFIGURACIÓN JAVASCRIPT PARA MAPAS
         ======================================
@@ -744,27 +760,27 @@
         /**
          * Datos del envío para JavaScript
          * Normaliza y serializa datos PHP para uso en frontend
-         * 
+         *
          * @type {Object} window.envioData - Objeto global con datos del envío
          * @property {string} ciudadOrigen - Ciudad de recogida normalizada
-         * @property {string} ciudadDestino - Ciudad de destino normalizada  
+         * @property {string} ciudadDestino - Ciudad de destino normalizada
          * @property {string} estadoActual - ID del estado actual del envío
          * @property {Array} movimientos - Array de movimientos del envío
          */
         window.envioData = {
             // Normalización de ciudad origen (maneja arrays)
             ciudadOrigen: @json(is_array($respuesta['CiuRem'] ?? null) ? (is_array($respuesta['CiuRem']) ? $respuesta['CiuRem'][0] : $respuesta['CiuRem']) : ''),
-            
+
             // Normalización de ciudad destino (maneja arrays)
             ciudadDestino: @json(is_array($respuesta['CiuDes'] ?? null) ? (is_array($respuesta['CiuDes']) ? $respuesta['CiuDes'][0] : $respuesta['CiuDes']) : ''),
-            
+
             // Estado actual del envío
             estadoActual: @json($idEstadoActual ?? ''),
-            
+
             // Array completo de movimientos
             movimientos: @json($movimientos ?? [])
         };
-        
+
         /**
          * Log de debug para desarrollo
          * Permite verificar que los datos se están pasando correctamente
@@ -772,28 +788,28 @@
         console.log('Datos cargados para el mapa:', window.envioData);
     </script>
 
-    {{-- 
+    {{--
         ============================================
         LIBRERÍAS EXTERNAS PARA MAPAS INTERACTIVOS
         ============================================
         CDNs de Leaflet y plugins con integridad SHA para seguridad
     --}}
-    
+
     {{-- CSS principal de Leaflet con verificación de integridad --}}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
+
     {{-- JavaScript principal de Leaflet con verificación de integridad --}}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
+
     {{-- Plugin de routing para cálculo de rutas entre ciudades --}}
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    
+
     {{-- CSS del plugin de routing --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    
-    {{-- 
+
+    {{--
         Archivo JavaScript personalizado para manejo de mapas
         Contiene la lógica específica para inicialización y control de mapas
     --}}

@@ -17,3 +17,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+# Ignorar el historial de archivos generado por el editor
+.history/
