@@ -1,13 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TrackingServientregaController;
-use App\Http\Controllers\GuiaEnvioController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GuiaEnvioController;
+use App\Http\Controllers\TrackingServientregaController;
 
 //Muestra formulario para ingresar la guia
 Route::get('/consultar', function () {
-    return view('consultar'); 
+    return view('consultar');
 });
 
 // Esta ruta procesará la guía que se envía desde el formulario
@@ -23,7 +23,3 @@ Route::get('/guia/{numeroGuia}', [TrackingServientregaController::class, 'verGui
     Route::get('guias/{guia}/regenerar', [GuiaEnvioController::class, 'mostrarRegeneracion'])->name('show');
     Route::post('guias/{guia}/regenerar', [GuiaEnvioController::class, 'regenerar'])->name('crear.guia');
 });*/
-
-
-
-

@@ -399,7 +399,7 @@
     .buttons-container {
         flex-direction: column;
     }
-    
+
     .btn-custom {
         width: 100%;
         text-align: center;
@@ -411,28 +411,28 @@
         height: 2rem;
         margin-right: 0.75rem;
     }
-    
+
     .map-status-indicators {
         justify-content: center;
     }
-    
+
     .status-indicator {
         font-size: 12px;
         padding: 4px 8px;
     }
-    
+
     .map-external-disclaimer {
         padding: 10px 12px;
     }
-    
+
     .disclaimer-content {
         font-size: 12px;
     }
-    
+
     .disclaimer-content small {
         font-size: 12px;
     }
-    
+
     .disclaimer-content i {
         font-size: 13px;
     }
@@ -442,16 +442,69 @@
     .map-external-disclaimer {
         padding: 8px 10px;
     }
-    
+
     .disclaimer-content {
         font-size: 11px;
     }
-    
+
     .disclaimer-content small {
         font-size: 11px;
     }
-    
+
     .disclaimer-content i {
         font-size: 12px;
+    }
+}
+
+/* ===== ESTILOS PARA BOTONES DEL MODAL DE COMPROBANTE ===== */
+.btn-custom-modal {
+    background-color: #33549b !important;
+    border-color: #33549b !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    min-width: 180px !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    border: none !important;
+}
+
+.btn-custom-modal:hover {
+    background-color: #2a4482 !important;
+    border-color: #2a4482 !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(51, 84, 155, 0.3) !important;
+    text-decoration: none !important;
+}
+
+.btn-custom-modal:focus,
+.btn-custom-modal:active {
+    background-color: #2a4482 !important;
+    border-color: #2a4482 !important;
+    color: white !important;
+    box-shadow: 0 0 0 3px rgba(51, 84, 155, 0.3) !important;
+    outline: none !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 576px) {
+    .btn-custom-modal {
+        min-width: 140px !important;
+        font-size: 14px !important;
+        padding: 10px 20px !important;
+    }
+
+    .d-flex.gap-3 {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .d-flex.gap-3 .btn-custom-modal {
+        width: 100% !important;
+        max-width: 250px !important;
     }
 }
