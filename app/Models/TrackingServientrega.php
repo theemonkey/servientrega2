@@ -33,7 +33,7 @@ class TrackingServientrega extends Model
         'forma_pago',
         'nomb_producto',
         'fecha_probable',
-        'imagen_png_binario',
+        'imagen_base64',
         'movimientos',
     ];
 
@@ -45,23 +45,33 @@ class TrackingServientrega extends Model
     ];
 
     /**
-     * Verifica si tiene imagen PNG
+     * Verifica si tiene imagen
      */
     public function tieneImagen()
     {
-        return !empty($this->imagen_png_binario) &&
-            substr($this->imagen_png_binario, 0, 8) === "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
+        return !empty($this->imagen_base64);
     }
 
     /**
-     * Convierte PNG binario a base64 para mostrar en vista
+     * Obtiene imagen para vista
      */
     public function getImagenBase64ParaVistaAttribute()
     {
         if (!$this->tieneImagen()) {
             return null;
         }
+        // Si es base64 original, devolverla como está
+        return $this->imagen_base64;
+    }
 
-        return base64_encode($this->imagen_png_binario);
+    /**
+     * Verifica si la imagen guardada es PNG binario
+     */
+    private function esPngBinario()
+    {
+        if (!$this->imagen_base64) return false;
+
+        // Si empieza con data: es base64, si no es binario
+        return !str_starts_with($this->imagen_base64, 'data:');
     }
 }
