@@ -680,18 +680,15 @@
                     <div class="modal-body text-center">
 
                         {{--
-                            CASO 1: Imagen procesada como PNG binario
+                            CASO 1: Imagen procesada
                             Imagen lista para mostrar y descargar
                         --}}
                         @if(isset($trackingRecord) && $trackingRecord->tieneImagen())
                             {{-- Contenedor de la imagen --}}
                             <div class="mb-3">
-                                <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
-                                    alt="Comprobante de guía{{ $numeroGuia }}"
-                                    class="img-fluid border rounded shadow-sm"
-                                    style="max-width: 100%; height: auto; max-height: 80vh;"
-                                    loading="lazy">
+                                <canvas class="w-100" id="tiffCanvas"></canvas>
                             </div>
+
                             {{-- Botón de descarga con nombre dinámico --}}
                             <div class="d-flex justify-content-center gap-3 mt-3">
                                 <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
@@ -712,11 +709,7 @@
                         --}}
                         @elseif(isset($trackingRecord) && $trackingRecord->imagen_png_binario)
                             <div class="mb-3">
-                                <img src="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
-                                    alt="Comprobante de guía {{ $numeroGuia }}"
-                                    class="img-fluid border rounded shadow-sm"
-                                    style="max-width: 100%; height: auto; max-height: 80vh;"
-                                    loading="lazy">
+                                <canvas class="w-100" id="tiffCanvas"></canvas>
                             </div>
 
                             <div class="d-flex justify-content-center gap-3 mt-3">
@@ -814,5 +807,65 @@
         Contiene la lógica específica para inicialización y control de mapas
     --}}
     <script src="{{ asset('js/tracking-map-leaflet.js') }}"></script>
+
+    {{-- ==> Descargar y ejecutar la biblioteca tiff.js para entender y renderizar imágenes TIFF --}}
+    <script src="https://seikichi.github.io/tiff.js/tiff.min.js"></script>
+    <script>
+        const modalElement = document.getElementById('comprobanteModal');
+
+        modalElement.addEventListener('shown.bs.modal', function () {
+            const parentContainer = document.getElementById("tiffCanvas").parentNode;
+            const parentWidth = parentContainer.offsetWidth;
+            console.log(parentWidth);
+                const b64 = '{{ $respuesta['Imagen'] ?? ''}}';
+
+            if (b64) {
+                try {
+                    // Decode the Base64 string into a binary array.
+                    const binary = atob(b64);
+                    const length = binary.length;
+                    const buffer = new Uint8Array(length);
+                    for (let i = 0; i < length; i++) {
+                        buffer[i] = binary.charCodeAt(i);
+                    }
+
+                    // Create a Tiff object to get the original image dimensions.
+                    const tiff = new Tiff({ buffer: buffer.buffer });
+                    const originalWidth = tiff.width();
+                    const originalHeight = tiff.height();
+
+                    // Calculate the new height to maintain the aspect ratio.
+                    const aspectRatio = originalWidth / originalHeight;
+                    const newHeight = parentWidth / aspectRatio;
+
+                    // Create a new, correctly-sized canvas element.
+                    const finalCanvas = document.createElement('canvas');
+                    finalCanvas.id = "tiffCanvas";
+                    finalCanvas.className = 'w-100'; // Apply the Bootstrap class for styling.
+                    finalCanvas.width = parentWidth;
+                    finalCanvas.height = newHeight;
+
+                    // Get the 2D rendering context.
+                    const ctx = finalCanvas.getContext('2d');
+
+                    // Create a temporary canvas from the TIFF data.
+                    const tiffCanvas = tiff.toCanvas();
+
+                    // Draw the temporary canvas onto the new, correctly-sized canvas.
+                    ctx.drawImage(tiffCanvas, 0, 0, parentWidth, newHeight);
+
+                    // Replace the original, empty canvas with the new, resized one.
+                    document.getElementById("tiffCanvas").replaceWith(finalCanvas);
+
+                } catch (error) {
+                    console.error('Failed to render TIFF image:', error);
+                    const canvasContainer = document.getElementById("tiffCanvas").parentNode;
+                    canvasContainer.innerHTML = '<p class="text-danger">Error al cargar la imagen</p>';
+                }
+            } else {
+                console.warn('No image data found to render.');
+            }
+        });
+    </script>
 
 @endsection

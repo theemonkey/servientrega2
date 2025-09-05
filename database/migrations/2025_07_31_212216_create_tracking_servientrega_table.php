@@ -3,46 +3,64 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        //  Crear tabla completa con SQL directo (una sola operación)
-        DB::statement("
-            CREATE TABLE tracking_servientrega (
-                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                numero_guia VARCHAR(255) NULL,
-                fec_env TIMESTAMP NULL,
-                num_pie INT NULL,
-                ciu_remitente VARCHAR(255) NULL,
-                nom_remitente VARCHAR(255) NULL,
-                dir_remitente VARCHAR(255) NULL,
-                ciu_destinatario VARCHAR(255) NULL,
-                nom_destinatario VARCHAR(255) NULL,
-                dir_destinatario VARCHAR(255) NULL,
-                id_estado_actual INT NULL,
-                estado_actual VARCHAR(255) NULL,
-                fecha_estado TIMESTAMP NULL,
-                nom_receptor VARCHAR(255) NULL,
-                num_cun INT NULL,
-                regimen VARCHAR(255) NULL,
-                placa VARCHAR(255) NULL,
-                id_gps INT NULL,
-                forma_pago VARCHAR(255) NULL,
-                nomb_producto VARCHAR(255) NULL,
-                fecha_probable TIMESTAMP NULL,
-                movimientos JSON NULL,
-                imagen_png_binario LONGBLOB NULL,
-                created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ");
+        Schema::create('tracking_servientrega', function (Blueprint $table) {
+            $table->id();
+
+            // Información básica de la guía
+            $table->string('numero_guia')->nullable();
+            $table->timestamp('fec_env')->nullable();
+            $table->integer('num_pie')->nullable();
+
+            // Información del remitente
+            $table->string('ciu_remitente')->nullable();
+            $table->string('nom_remitente')->nullable();
+            $table->string('dir_remitente')->nullable();
+
+            // Información del destinatario
+            $table->string('ciu_destinatario')->nullable();
+            $table->string('nom_destinatario')->nullable();
+            $table->string('dir_destinatario')->nullable();
+
+            // Estado del envío
+            $table->integer('id_estado_actual')->nullable();
+            $table->string('estado_actual')->nullable();
+            $table->timestamp('fecha_estado')->nullable();
+
+            // Información de entrega
+            $table->string('nom_receptor')->nullable();
+            $table->integer('num_cun')->nullable();
+
+            // Información logística
+            $table->string('regimen')->nullable();
+            $table->string('placa')->nullable();
+            $table->integer('id_gps')->nullable();
+            $table->string('forma_pago')->nullable();
+            $table->string('nomb_producto')->nullable();
+            $table->timestamp('fecha_probable')->nullable();
+
+            // Historial de movimientos
+            $table->json('movimientos')->nullable();
+
+            // IMAGEN COMO BASE64 (LONGTEXT para soportar TIFF)
+            $table->longText('imagen_base64')->nullable();
+
+            $table->timestamps();
+
+            /* // Índices
+            $table->index('numero_guia');
+            $table->index('id_estado_actual');
+            $table->index('fecha_estado');
+            $table->index('fec_env');*/
+        });
     }
 
     public function down(): void
     {
-        DB::statement('DROP TABLE IF EXISTS tracking_servientrega');
+        Schema::dropIfExists('tracking_servientrega');
     }
 };

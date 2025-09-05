@@ -6,20 +6,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\TrackingServientrega;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
-use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 /**
- * Controlador optimizado para guardar PNG binario en BD
- * Mucho más liviano que base64
+ * ====================
+ * CONTROLADOR SIMPLE
+ * ====================
+ *
+ * Enfoque simplificado:
+ * - Backend: Solo almacenar imagen original como base64
+ * - Frontend: Canvas TIFF viewer con detección de formato
+ * - Sin conversiones complejas en backend
  */
 class TrackingServientregaController extends Controller
 {
-    private const IMAGE_MAX_WIDTH = 800;
-    private const IMAGE_MAX_HEIGHT = 1200;
-    private const IMAGE_QUALITY = 85;
-
     private function limpiarValor($valor)
     {
         if (is_array($valor)) {
@@ -29,189 +28,55 @@ class TrackingServientregaController extends Controller
     }
 
     /**
-     * Convierte TIFF a PNG y retorna BINARIO (no base64)
+     * ========================================
+     * NUEVO: DETECTAR FORMATO DE IMAGEN
+     * ========================================
      */
-    private function convertirTiffAPngBinario($tiffBase64, $numeroGuia)
+    private function detectarFormatoImagen($base64Data)
     {
-        try {
-            Log::info('=== CONVERSIÓN TIFF → PNG BINARIO ===', [
-                'numero_guia' => $numeroGuia,
-                'tamaño_tiff_base64_kb' => round(strlen($tiffBase64) / 1024, 2)
-            ]);
-
-            // Decodificar TIFF
-            $base64Limpio = preg_replace('/[^A-Za-z0-9+\/=]/', '', $tiffBase64);
-            $tiffBinario = base64_decode($base64Limpio, true);
-
-            if ($tiffBinario === false) {
-                Log::warning('No se pudo decodificar TIFF base64');
-                return null;
-            }
-
-            $pngBinario = null;
-            $metodoUsado = '';
-
-            /*
-             * MÉTODO 1: Imagick
-             */
-            if (extension_loaded('imagick') && class_exists('Imagick')) {
-                try {
-                    $imagick = new \Imagick();
-                    $imagick->readImageBlob($tiffBinario);
-
-                    Log::info('TIFF cargado con Imagick', [
-                        'ancho_original' => $imagick->getImageWidth(),
-                        'alto_original' => $imagick->getImageHeight()
-                    ]);
-
-                    // Optimizar tamaño
-                    if (
-                        $imagick->getImageWidth() > self::IMAGE_MAX_WIDTH ||
-                        $imagick->getImageHeight() > self::IMAGE_MAX_HEIGHT
-                    ) {
-                        $imagick->resizeImage(
-                            self::IMAGE_MAX_WIDTH,
-                            self::IMAGE_MAX_HEIGHT,
-                            \Imagick::FILTER_LANCZOS,
-                            1,
-                            true
-                        );
-
-                        Log::info('Imagen redimensionada', [
-                            'nuevo_ancho' => $imagick->getImageWidth(),
-                            'nuevo_alto' => $imagick->getImageHeight()
-                        ]);
-                    }
-
-                    // Configurar PNG optimizado
-                    $imagick->setImageFormat('png');
-                    $imagick->setImageCompressionQuality(self::IMAGE_QUALITY);
-                    $imagick->stripImage(); // Remover metadatos
-
-                    // CLAVE: Obtener PNG como binario (no base64)
-                    $pngBinario = $imagick->getImageBlob();
-                    $metodoUsado = 'Imagick';
-
-                    $imagick->clear();
-                    $imagick->destroy();
-                } catch (\Exception $e) {
-                    Log::warning('Imagick falló: ' . $e->getMessage());
-                }
-            }
-
-            /*
-             * MÉTODO 2: Intervention Image
-             */
-            if (!$pngBinario) {
-                try {
-                    $manager = extension_loaded('imagick')
-                        ? new ImageManager(new ImagickDriver())
-                        : new ImageManager(new GdDriver());
-
-                    $image = $manager->read($tiffBinario);
-
-                    // Redimensionar
-                    if (
-                        $image->width() > self::IMAGE_MAX_WIDTH ||
-                        $image->height() > self::IMAGE_MAX_HEIGHT
-                    ) {
-                        $image->resize(self::IMAGE_MAX_WIDTH, self::IMAGE_MAX_HEIGHT, function ($constraint) {
-                            $constraint->aspectRatio();
-                            $constraint->upsize();
-                        });
-                    }
-
-                    // CLAVE: toString() nos da el binario directamente
-                    $pngBinario = $image->toPng()->toString();
-                    $metodoUsado = 'Intervention Image';
-                } catch (\Exception $e) {
-                    Log::warning('Intervention Image falló: ' . $e->getMessage());
-                }
-            }
-
-            /*
-             * MÉTODO 3: GD
-             */
-            if (!$pngBinario && extension_loaded('gd')) {
-                try {
-                    $image = imagecreatefromstring($tiffBinario);
-
-                    if ($image !== false) {
-                        $width = imagesx($image);
-                        $height = imagesy($image);
-
-                        // Redimensionar si es necesario
-                        if ($width > self::IMAGE_MAX_WIDTH || $height > self::IMAGE_MAX_HEIGHT) {
-                            $ratio = min(self::IMAGE_MAX_WIDTH / $width, self::IMAGE_MAX_HEIGHT / $height);
-                            $newWidth = intval($width * $ratio);
-                            $newHeight = intval($height * $ratio);
-
-                            $optimizedImage = imagecreatetruecolor($newWidth, $newHeight);
-                            imagealphablending($optimizedImage, false);
-                            imagesavealpha($optimizedImage, true);
-
-                            imagecopyresampled(
-                                $optimizedImage,
-                                $image,
-                                0,
-                                0,
-                                0,
-                                0,
-                                $newWidth,
-                                $newHeight,
-                                $width,
-                                $height
-                            );
-
-                            imagedestroy($image);
-                            $image = $optimizedImage;
-                        }
-
-                        // CLAVE: Capturar PNG binario
-                        ob_start();
-                        imagepng($image, null, 8);
-                        $pngBinario = ob_get_contents();
-                        ob_end_clean();
-                        imagedestroy($image);
-
-                        $metodoUsado = 'GD';
-                    }
-                } catch (\Exception $e) {
-                    Log::warning('GD falló: ' . $e->getMessage());
-                }
-            }
-
-            if (!$pngBinario) {
-                Log::error(' Conversión falló completamente');
-                return null;
-            }
-
-            // Verificar que es PNG válido
-            $isPngValid = substr($pngBinario, 0, 8) === "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
-
-            Log::info(' CONVERSIÓN EXITOSA', [
-                'numero_guia' => $numeroGuia,
-                'metodo' => $metodoUsado,
-                'tamaño_tiff_kb' => round(strlen($tiffBinario) / 1024, 2),
-                'tamaño_png_binario_kb' => round(strlen($pngBinario) / 1024, 2),
-                'tamaño_que_sería_base64_kb' => round(strlen(base64_encode($pngBinario)) / 1024, 2),
-                'ahorro_vs_base64' => round((1 - strlen($pngBinario) / strlen(base64_encode($pngBinario))) * 100, 2) . '%',
-                'png_válido' => $isPngValid
-            ]);
-
-            // RETORNAMOS BINARIO (no base64)
-            return $pngBinario;
-        } catch (\Exception $e) {
-            Log::error(' Error en conversión', [
-                'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage()
-            ]);
-            return null;
+        // Decodificar para obtener los primeros bytes
+        $binaryData = base64_decode($base64Data, true);
+        if ($binaryData === false || strlen($binaryData) < 10) {
+            return 'unknown';
         }
+
+        // Obtener header (primeros 10 bytes)
+        $header = substr($binaryData, 0, 10);
+        $headerHex = bin2hex($header);
+
+        // Detectar formato por firma de archivo (magic numbers)
+        $formatos = [
+            'png' => ['89504e470d0a1a0a'],
+            'jpg' => ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'],
+            'gif' => ['474946383761', '474946383961'],
+            'bmp' => ['424d'],
+            'tiff' => ['49492a00', '4d4d002a'], // TIFF little-endian y big-endian
+            'pdf' => ['255044462d'],
+        ];
+
+        foreach ($formatos as $formato => $signatures) {
+            foreach ($signatures as $signature) {
+                if (strpos(strtolower($headerHex), strtolower($signature)) === 0) {
+                    Log::info(' FORMATO DETECTADO', [
+                        'formato' => $formato,
+                        'signature' => $signature,
+                        'header_hex' => substr($headerHex, 0, 16)
+                    ]);
+                    return $formato;
+                }
+            }
+        }
+
+        Log::warning(' FORMATO NO RECONOCIDO', [
+            'header_hex' => substr($headerHex, 0, 16),
+            'tamaño_datos' => strlen($binaryData)
+        ]);
+
+        return 'unknown';
     }
 
     /**
-     * Procesar guía con PNG binario
+     * Procesar guía - VERSIÓN SIMPLIFICADA
      */
     private function procesarGuia($numeroGuia, $logAcceso = false)
     {
@@ -220,7 +85,9 @@ class TrackingServientregaController extends Controller
         }
 
         if ($logAcceso) {
-            Log::info('Acceso directo a guía', ['numero_guia' => $numeroGuia]);
+            Log::info('🔍 ACCESO DIRECTO A GUÍA', [
+                'numero_guia' => $numeroGuia
+            ]);
         }
 
         // Consultar API
@@ -231,10 +98,18 @@ class TrackingServientregaController extends Controller
             );
 
             if (!$response->successful()) {
-                throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema");
+                throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema de Servientrega");
             }
+
+            Log::info('📡 API CONSULTADA EXITOSAMENTE', [
+                'numero_guia' => $numeroGuia,
+                'codigo_respuesta' => $response->status()
+            ]);
         } catch (\Exception $e) {
-            Log::error('Error API', ['numero_guia' => $numeroGuia, 'error' => $e->getMessage()]);
+            Log::error(' ERROR CONSULTANDO API', [
+                'numero_guia' => $numeroGuia,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
 
@@ -242,11 +117,14 @@ class TrackingServientregaController extends Controller
         try {
             $xml = simplexml_load_string($response->body());
             if ($xml === false) {
-                throw new \Exception('Respuesta XML inválida');
+                throw new \Exception('Respuesta XML inválida del servicio');
             }
             $array = json_decode(json_encode($xml), true);
         } catch (\Exception $e) {
-            Log::error('Error XML', ['numero_guia' => $numeroGuia, 'error' => $e->getMessage()]);
+            Log::error(' ERROR PROCESANDO XML', [
+                'numero_guia' => $numeroGuia,
+                'error' => $e->getMessage()
+            ]);
             throw new \Exception('Error procesando respuesta de la API');
         }
 
@@ -256,26 +134,33 @@ class TrackingServientregaController extends Controller
             $movimientos = [$movimientos];
         }
 
-        /*
-         * ¡CAMBIO PRINCIPAL!
-         * Ahora guardamos PNG BINARIO (no base64)
+        /**
+         * =====================================
+         * SIMPLIFICADO: SOLO ALMACENAR BASE64 ORIGINAL
+         * =====================================
          */
-        $imagenPngBinario = null;
+        $imagenBase64Original = null;
+        $formatoDetectado = 'unknown';
+
         if (isset($array['Imagen']) && !empty($array['Imagen'])) {
+
+            // PENDIENTE:
+            //Descargar imagen y almacenar localmente
+            // hacer una funcion que me devuelva la ruta relativa de la imagen
+            //Luego guardarla en la db
+
             $imagenTiffOriginal = is_array($array['Imagen'])
                 ? $array['Imagen'][0]
                 : $array['Imagen'];
 
-            Log::info('Procesando imagen para optimización', [
-                'numero_guia' => $numeroGuia,
-                'tamaño_tiff_original_kb' => round(strlen($imagenTiffOriginal) / 1024, 2)
-            ]);
+            // Detectar formato real
+            $formatoDetectado = $this->detectarFormatoImagen($imagenTiffOriginal);
 
-            // Convertir a PNG binario (mucho más liviano)
-            $imagenPngBinario = $this->convertirTiffAPngBinario($imagenTiffOriginal, $numeroGuia);
+            // Almacenar imagen original como base64
+            $imagenBase64Original = $imagenTiffOriginal;  //En esta parte pendiente poner la ruta relativa de la imagen
         }
 
-        // Preparar datos
+        // Preparar datos para BD
         $identificador = ['numero_guia' => $numeroGuia];
         $datos = [
             'fec_env' => $this->limpiarValor($array['FecEnv'] ?? null),
@@ -298,23 +183,23 @@ class TrackingServientregaController extends Controller
             'nomb_producto' => $this->limpiarValor($array['NomProducto'] ?? null),
             'fecha_probable' => $this->limpiarValor($array['FechaProbable'] ?? null),
             'movimientos' => $movimientos,
-
-            //  Guardamos PNG binario (mucho más liviano)
-            'imagen_png_binario' => $imagenPngBinario,
+            // ALMACENAR IMAGEN ORIGINAL COMO BASE64
+            'imagen_base64' => $imagenBase64Original,
         ];
 
         // Almacenar en BD
         try {
             $trackingRecord = TrackingServientrega::updateOrCreate($identificador, $datos);
 
-            Log::info(' Guía procesada con optimización', [
+            Log::info(' GUÍA PROCESADA SIMPLIFICADA', [
                 'numero_guia' => $numeroGuia,
                 'id_registro' => $trackingRecord->id,
-                'imagen_optimizada' => !empty($imagenPngBinario),
-                'tamaño_imagen_kb' => !empty($imagenPngBinario) ? round(strlen($imagenPngBinario) / 1024, 2) : 0
+                'imagen_guardada' => !empty($imagenBase64Original),
+                'formato_detectado' => $formatoDetectado,
+                'tamaño_imagen_kb' => !empty($imagenBase64Original) ? round(strlen($imagenBase64Original) / 1024, 2) : 0
             ]);
         } catch (\Exception $e) {
-            Log::error('Error BD', [
+            Log::error(' ERROR ALMACENANDO EN BD', [
                 'numero_guia' => $numeroGuia,
                 'error' => $e->getMessage()
             ]);
@@ -323,11 +208,13 @@ class TrackingServientregaController extends Controller
 
         return [
             'array' => $array,
-            'trackingRecord' => $trackingRecord
+            'trackingRecord' => $trackingRecord,
+            'imagenOriginalBase64' => $imagenBase64Original, // Para canvas
+            'formatoDetectado' => $formatoDetectado
         ];
     }
 
-    // Métodos públicos (sin cambios)
+    // Métodos existentes actualizados
     public function consultarGuia(Request $request)
     {
         $request->validate([
@@ -345,10 +232,11 @@ class TrackingServientregaController extends Controller
             return view('resultados', [
                 'respuesta' => $resultado['array'],
                 'trackingRecord' => $resultado['trackingRecord'],
-                'numeroGuia' => $numeroGuia
+                'numeroGuia' => $numeroGuia,
+                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] // ✅ Para botón canvas
             ]);
         } catch (\Exception $e) {
-            Log::error('Error consulta formulario', [
+            Log::error(' ERROR EN CONSULTA DESDE FORMULARIO', [
                 'numero_guia' => $numeroGuia,
                 'error' => $e->getMessage()
             ]);
@@ -369,10 +257,11 @@ class TrackingServientregaController extends Controller
                 'respuesta' => $resultado['array'],
                 'trackingRecord' => $resultado['trackingRecord'],
                 'numeroGuia' => $numeroGuia,
-                'urlOrigen' => $origen
+                'urlOrigen' => $origen,
+                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] // ✅ Para botón canvas
             ]);
         } catch (\Exception $e) {
-            Log::error('Error consulta directa', [
+            Log::error(' ERROR EN CONSULTA DIRECTA', [
                 'numero_guia' => $numeroGuia,
                 'error' => $e->getMessage()
             ]);
