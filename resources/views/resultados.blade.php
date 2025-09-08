@@ -10,7 +10,7 @@
  * - Pestañas Bootstrap (Detalles/Historial)
  * - Mapas interactivos con Leaflet/OpenStreetMap
  * - Disclaimer externo para información legal
- * - Modal para visualización de comprobantes
+ * - Modal para visualización de comprobantes a traves de canvas
  * - Sistema de estados con colores dinámicos
  * - Responsive design
  */
@@ -691,7 +691,7 @@
 
                             {{-- Botón de descarga con nombre dinámico --}}
                             <div class="d-flex justify-content-center gap-3 mt-3">
-                                <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                <a onclick="descargarDesdeCanvas('{{ $numeroGuia }}')"
                                 download="comprobante-{{ $numeroGuia }}.png"
                                 class="btn btn-custom-modal d-flex align-items-center">
                                     <i class="fas fa-download me-2"></i>Descargar Comprobante
@@ -713,7 +713,7 @@
                             </div>
 
                             <div class="d-flex justify-content-center gap-3 mt-3">
-                                <a href="data:image/png;base64,{{ $trackingRecord->imagen_base64_para_vista }}"
+                                <a onclick="descargarDesdeCanvas('{{ $numeroGuia }}')"
                                 download="comprobante-{{ $numeroGuia }}.png"
                                 class="btn btn-custom-modal d-flex align-items-center">
                                     <i class="fas fa-download me-2"></i>Descargar Comprobante
@@ -812,6 +812,29 @@
     <script src="https://seikichi.github.io/tiff.js/tiff.min.js"></script>
     <script>
         const modalElement = document.getElementById('comprobanteModal');
+
+        // Función para descargar imagen desde canvas como PNG
+        function descargarDesdeCanvas(numeroGuia) {
+            const canvas = document.getElementById('tiffCanvas');
+
+            if (!canvas) {
+                alert('No hay imagen cargada en el canvas');
+                return;
+            }
+
+            // Crear enlace de descarga por canvas
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `comprobante_${numeroGuia}_canvas.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                console.log(' Descarga desde canvas completada');
+            }, 'image/png', 0.92);
+        }
 
         modalElement.addEventListener('shown.bs.modal', function () {
             const parentContainer = document.getElementById("tiffCanvas").parentNode;
