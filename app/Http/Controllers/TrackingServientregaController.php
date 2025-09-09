@@ -94,19 +94,20 @@ class TrackingServientregaController extends Controller
 
             // Detectar formato de la imagen original
             $formatoDetectado = $this->detectarFormatoImagen($base64Data);
+            $extension = ($formatoDetectado !== 'unknown') ? $formatoDetectado : 'bin';
 
             // Generar nombre único manteniendo el formato original
-            $timestamp = now()->format('Ymd_His');
-            $extension = ($formatoDetectado !== 'unknown') ? $formatoDetectado : 'bin';
-            $nombreArchivo = "comprobante_{$numeroGuia}_{$timestamp}.{$extension}";
+            $nombreArchivo = "comprobante_{$numeroGuia}.{$extension}";
             $rutaCompleta = $directorioImagenes . '/' . $nombreArchivo;
             $rutaRelativa = 'temp_comprobantes/' . $nombreArchivo;
 
-            Log::info(' PROCESANDO IMAGEN DIRECTA', [
-                'numero_guia' => $numeroGuia,
-                'formato_detectado' => $formatoDetectado,
-                'nombre_archivo' => $nombreArchivo
-            ]);
+            //Verificar si el archivo ya existe
+            if (File::exists($rutaCompleta)) {
+                Log::info(' IMAGEN YA EXISTE, NO SE SOBREESCRIBE', [
+                    'numero_guia' => $numeroGuia,
+                    'archivo_existente' => $nombreArchivo
+                ]);
+            }
 
             // Decodificar y guardar datos binarios directamente
             $binaryData = base64_decode($base64Data, true);
@@ -114,7 +115,7 @@ class TrackingServientregaController extends Controller
                 throw new \Exception('Error decodificando imagen base64');
             }
 
-            // Guardar archivo binario sin conversión
+            // Sobrescribir el archivo si ya existe
             File::put($rutaCompleta, $binaryData);
 
             // Verificar que el archivo se guardó correctamente
