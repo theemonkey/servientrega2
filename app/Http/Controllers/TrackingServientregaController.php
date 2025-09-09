@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
 use App\Models\TrackingServientrega;
 
 /**
@@ -13,9 +14,10 @@ use App\Models\TrackingServientrega;
  * ====================
  *
  * Enfoque simplificado:
- * - Backend: Solo almacenar imagen original como base64
  * - Frontend: Canvas TIFF viewer con detección de formato
  * - Sin conversiones complejas en backend
+ * - BD: Solo almacenar ruta relativa de la imagen
+ * - Uso de canvas como visor de imagen comprobante
  */
 class TrackingServientregaController extends Controller
 {
@@ -76,6 +78,111 @@ class TrackingServientregaController extends Controller
     }
 
     /**
+     * =====================================
+     * NUEVA FUNCIÓN: GUARDAR IMAGEN BINARIA DIRECTAMENTE
+     * =====================================
+     */
+    private function guardarImagenDirecta($base64Data, $numeroGuia)
+    {
+        try {
+            // Crear directorio si no existe
+            $directorioImagenes = public_path('temp_comprobantes');
+            if (!File::exists($directorioImagenes)) {
+                File::makeDirectory($directorioImagenes, 0755, true);
+                Log::info(' DIRECTORIO CREADO', ['ruta' => $directorioImagenes]);
+            }
+
+            // Detectar formato de la imagen original
+            $formatoDetectado = $this->detectarFormatoImagen($base64Data);
+            $extension = ($formatoDetectado !== 'unknown') ? $formatoDetectado : 'bin';
+
+            // Generar nombre único manteniendo el formato original
+            $nombreArchivo = "comprobante_{$numeroGuia}.{$extension}";
+            $rutaCompleta = $directorioImagenes . '/' . $nombreArchivo;
+            $rutaRelativa = 'temp_comprobantes/' . $nombreArchivo;
+
+            //Verificar si el archivo ya existe
+            if (File::exists($rutaCompleta)) {
+                Log::info(' IMAGEN YA EXISTE, NO SE SOBREESCRIBE', [
+                    'numero_guia' => $numeroGuia,
+                    'archivo_existente' => $nombreArchivo
+                ]);
+            }
+
+            // Decodificar y guardar datos binarios directamente
+            $binaryData = base64_decode($base64Data, true);
+            if ($binaryData === false) {
+                throw new \Exception('Error decodificando imagen base64');
+            }
+
+            // Sobrescribir el archivo si ya existe
+            File::put($rutaCompleta, $binaryData);
+
+            // Verificar que el archivo se guardó correctamente
+            if (!File::exists($rutaCompleta)) {
+                throw new \Exception('Error guardando imagen en el filesystem');
+            }
+
+            $tamaño = File::size($rutaCompleta);
+            Log::info(' IMAGEN GUARDADA DIRECTAMENTE', [
+                'numero_guia' => $numeroGuia,
+                'ruta_relativa' => $rutaRelativa,
+                'tamaño_kb' => round($tamaño / 1024, 2),
+                'formato_original' => $formatoDetectado,
+                'extension' => $extension
+            ]);
+
+            return $rutaRelativa;
+        } catch (\Exception $e) {
+            Log::error(' ERROR GUARDANDO IMAGEN', [
+                'numero_guia' => $numeroGuia,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception('Error procesando imagen del comprobante: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * =====================================
+     * ENDPOINT DESCARGAR COMPROBANTE
+     * =====================================
+     */
+    public function descargarComprobante($numeroGuia)
+    {
+        try {
+            $trackingRecord = TrackingServientrega::where('numero_guia', $numeroGuia)->first();
+
+            if (!$trackingRecord) {
+                abort(404, 'Guía no encontrada');
+            }
+
+            if (!$trackingRecord->tieneImagen()) {
+                abort(404, 'Comprobante no disponible');
+            }
+
+            $contenido = $trackingRecord->getContenidoImagenParaDescarga();
+            $info = $trackingRecord->getInfoImagen();
+
+            if (!$contenido || !$info) {
+                abort(404, 'Error accediendo al archivo');
+            }
+
+            $nombreDescarga = "comprobante_{$numeroGuia}.{$info['extension']}";
+
+            return response($contenido)
+                ->header('Content-Type', $info['tipo_mime'])
+                ->header('Content-Disposition', "attachment; filename=\"{$nombreDescarga}\"")
+                ->header('Content-Length', strlen($contenido));
+        } catch (\Exception $e) {
+            Log::error(' ERROR DESCARGA COMPROBANTE', [
+                'numero_guia' => $numeroGuia,
+                'error' => $e->getMessage()
+            ]);
+            abort(500, 'Error interno del servidor');
+        }
+    }
+
+    /**
      * Procesar guía - VERSIÓN SIMPLIFICADA
      */
     private function procesarGuia($numeroGuia, $logAcceso = false)
@@ -86,7 +193,7 @@ class TrackingServientregaController extends Controller
         }
 
         if ($logAcceso) {
-            Log::info('🔍 ACCESO DIRECTO A GUÍA', [
+            Log::info(' ACCESO DIRECTO A GUÍA', [
                 'numero_guia' => $numeroGuia
             ]);
         }
@@ -102,7 +209,7 @@ class TrackingServientregaController extends Controller
                 throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema de Servientrega");
             }
 
-            Log::info('📡 API CONSULTADA EXITOSAMENTE', [
+            Log::info(' API CONSULTADA EXITOSAMENTE', [
                 'numero_guia' => $numeroGuia,
                 'codigo_respuesta' => $response->status()
             ]);
@@ -151,16 +258,11 @@ class TrackingServientregaController extends Controller
          * SIMPLIFICADO: SOLO ALMACENAR BASE64 ORIGINAL
          * =====================================
          */
-        $imagenBase64Original = null;
+        //$imagenBase64Original = null;
+        $rutaRelativaImagen = null;
         $formatoDetectado = 'unknown';
 
         if (isset($array['Imagen']) && !empty($array['Imagen'])) {
-
-            // PENDIENTE:
-            //Descargar imagen y almacenar localmente
-            // hacer una funcion que me devuelva la ruta relativa de la imagen
-            //Luego guardarla en la db
-
             $imagenTiffOriginal = is_array($array['Imagen'])
                 ? $array['Imagen'][0]
                 : $array['Imagen'];
@@ -168,8 +270,8 @@ class TrackingServientregaController extends Controller
             // Detectar formato real
             $formatoDetectado = $this->detectarFormatoImagen($imagenTiffOriginal);
 
-            // Almacenar imagen original como base64
-            $imagenBase64Original = $imagenTiffOriginal;  //En esta parte pendiente poner la ruta relativa de la imagen
+            //En esta parte esta la ruta relativa de la imagen
+            $rutaRelativaImagen = $this->guardarImagenDirecta($imagenTiffOriginal, $numeroGuia);
         }
 
         // Preparar datos para BD
@@ -196,7 +298,7 @@ class TrackingServientregaController extends Controller
             'fecha_probable' => $this->limpiarValor($array['FechaProbable'] ?? null),
             'movimientos' => $movimientos,
             // ALMACENAR IMAGEN ORIGINAL COMO BASE64
-            'imagen_base64' => $imagenBase64Original,
+            'imagen_base64' => $rutaRelativaImagen, // Aquí se guarda la ruta relativa de la imagen,
         ];
 
         // ===== ALMACENAR EN BD =====
@@ -206,9 +308,10 @@ class TrackingServientregaController extends Controller
             Log::info(' GUÍA PROCESADA SIMPLIFICADA', [
                 'numero_guia' => $numeroGuia,
                 'id_registro' => $trackingRecord->id,
-                'imagen_guardada' => !empty($imagenBase64Original),
+                'imagen_guardada' => !empty($rutaRelativaImagen),
                 'formato_detectado' => $formatoDetectado,
-                'tamaño_imagen_kb' => !empty($imagenBase64Original) ? round(strlen($imagenBase64Original) / 1024, 2) : 0
+                'ruta_imagen' => $rutaRelativaImagen,
+                //'tamaño_imagen_kb' => !empty($imagenBase64Original) ? round(strlen($imagenBase64Original) / 1024, 2) : 0
             ]);
         } catch (\Exception $e) {
             Log::error(' ERROR ALMACENANDO EN BD', [
@@ -223,8 +326,9 @@ class TrackingServientregaController extends Controller
         return [
             'array' => $array,
             'trackingRecord' => $trackingRecord,
-            'imagenOriginalBase64' => $imagenBase64Original, // Para canvas
-            'formatoDetectado' => $formatoDetectado
+            'imagenOriginalBase64' => $array['Imagen'] ?? null, // Para canvas
+            'formatoDetectado' => $formatoDetectado,
+            'rutaImagen' => $rutaRelativaImagen
         ];
     }
 
@@ -247,7 +351,7 @@ class TrackingServientregaController extends Controller
                 'respuesta' => $resultado['array'],
                 'trackingRecord' => $resultado['trackingRecord'],
                 'numeroGuia' => $numeroGuia,
-                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] // ✅ Para botón canvas
+                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] //  Para botón canvas
             ]);
         } catch (\Exception $e) {
             Log::error(' ERROR EN CONSULTA DESDE FORMULARIO', [
@@ -276,7 +380,7 @@ class TrackingServientregaController extends Controller
                 'trackingRecord' => $resultado['trackingRecord'],
                 'numeroGuia' => $numeroGuia,
                 'urlOrigen' => $origen,
-                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] // ✅ Para botón canvas
+                'imagenOriginalBase64' => $resultado['imagenOriginalBase64'] // Para botón canvas
             ]);
         } catch (\Exception $e) {
             Log::error(' ERROR EN CONSULTA DIRECTA', [
