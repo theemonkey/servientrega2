@@ -610,12 +610,9 @@
                         --}}
                         <div class="buttons-container mt-4">
                             {{-- Botón para abrir modal de comprobante --}}
-                            @if($imagenOriginalBase64)
                             <button type="button" class="btn-custom" data-bs-toggle="modal" data-bs-target="#comprobanteModal">
                                 <i class="fas fa-receipt me-2"></i>VER COMPROBANTE
                             </button>
-                            @endif
-
                             {{-- Botón para mostrar/ocultar mapa del historial --}}
                             <button type="button" class="btn-custom" id="toggleMapBtnHistorial">
                                 <i class="fas fa-map-marked-alt me-2"></i>VER MAPA

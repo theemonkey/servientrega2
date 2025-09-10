@@ -18,6 +18,7 @@ use App\Models\TrackingServientrega;
  * - Sin conversiones complejas en backend
  * - BD: Solo almacenar ruta relativa de la imagen
  * - Uso de canvas como visor de imagen comprobante
+ * - Uso de Logs para depurar si es necesario
  */
 class TrackingServientregaController extends Controller
 {
@@ -193,7 +194,7 @@ class TrackingServientregaController extends Controller
         }
 
         if ($logAcceso) {
-            Log::info(' ACCESO DIRECTO A GUÍA', [
+            Log::info('ACCESO DIRECTO A GUÍA', [
                 'numero_guia' => $numeroGuia
             ]);
         }
@@ -209,12 +210,12 @@ class TrackingServientregaController extends Controller
                 throw new \Exception("Guía {$numeroGuia} no encontrada en el sistema de Servientrega");
             }
 
-            Log::info(' API CONSULTADA EXITOSAMENTE', [
+            Log::info('API CONSULTADA EXITOSAMENTE', [
                 'numero_guia' => $numeroGuia,
                 'codigo_respuesta' => $response->status()
             ]);
 
-            Log::info('📡 API CONSULTADA EXITOSAMENTE', [
+            Log::info('API CONSULTADA EXITOSAMENTE', [
                 'numero_guia' => $numeroGuia,
                 'codigo_respuesta' => $response->status(),
                 'tamaño_respuesta_kb' => round(strlen($response->body()) / 1024, 2)
@@ -235,7 +236,7 @@ class TrackingServientregaController extends Controller
             }
             $array = json_decode(json_encode($xml), true);
 
-            Log::info('🔄 XML PROCESADO CORRECTAMENTE', [
+            Log::info(' XML PROCESADO CORRECTAMENTE', [
                 'numero_guia' => $numeroGuia,
                 'campos_principales' => array_keys($array)
             ]);
@@ -311,7 +312,6 @@ class TrackingServientregaController extends Controller
                 'imagen_guardada' => !empty($rutaRelativaImagen),
                 'formato_detectado' => $formatoDetectado,
                 'ruta_imagen' => $rutaRelativaImagen,
-                //'tamaño_imagen_kb' => !empty($imagenBase64Original) ? round(strlen($imagenBase64Original) / 1024, 2) : 0
             ]);
         } catch (\Exception $e) {
             Log::error(' ERROR ALMACENANDO EN BD', [
@@ -356,8 +356,7 @@ class TrackingServientregaController extends Controller
         } catch (\Exception $e) {
             Log::error(' ERROR EN CONSULTA DESDE FORMULARIO', [
                 'numero_guia' => $numeroGuia,
-                'error' => $e->getMessage(),
-                'usuario' => 'Will-AGW'
+                'error' => $e->getMessage()
             ]);
 
             return back()
@@ -386,8 +385,7 @@ class TrackingServientregaController extends Controller
             Log::error(' ERROR EN CONSULTA DIRECTA', [
                 'numero_guia' => $numeroGuia,
                 'error' => $e->getMessage(),
-                'url_origen' => $request->get('origen'),
-                'usuario' => 'Will-AGW'
+                'url_origen' => $request->get('origen')
             ]);
 
             return view('guia-detalle-error', [
